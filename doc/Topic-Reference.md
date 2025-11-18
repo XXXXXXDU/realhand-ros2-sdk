@@ -6,24 +6,25 @@ This document provides a detailed overview of the ROS Topic for the Linker Hand,
 
 ## Topic List
 ```bash
-/cb_hand_setting_cmd # 设置linkerhand命令话题
-/cb_left_hand_control_cmd # 控制左手运动话题 by range 0~255 (范围)
-/cb_left_hand_control_cmd_arc # 控制左手运动话题 by arc -3.14~3.14 (弧度) 
-/cb_left_hand_force # 左手压感数据显示话题
-/cb_left_hand_matrix_touch # 左手矩阵压感数据显示话题 list(6x12)
-/cb_left_hand_info  # 左手配置信息显示话题
-/cb_left_hand_state # 左手状态显示话题 范围
-/cb_left_hand_state_arc # 左手状态显示话题 弧度
-/cb_right_hand_control_cmd # 控制右手运动话题 by range 0~255 (范围)
-/cb_right_hand_control_cmd_arc # 控制右手运动话题 by arc -3.14~3.14 (弧度)
-/cb_right_hand_force # 右手压感数据显示话题
-/cb_right_hand_matrix_touch # 右手矩阵压感数据显示话题 list(6x12)
-/cb_right_hand_info # 右手配置信息显示话题
-/cb_right_hand_state # 右手状态显示话题 范围
-/cb_right_hand_state_arc # 右手状态显示话题 弧度
+/cb_hand_setting_cmd # LinkerHand command topic
+/cb_left_hand_control_cmd # Control left-hand motion by range 0~255 (range)
+/cb_left_hand_control_cmd_arc # Control left-hand motion by arc -3.14~3.14 (radians) 
+/cb_left_hand_force # Left-hand pressure (force) data topic
+/cb_left_hand_matrix_touch # Left-hand matrix pressure data topic list(6x12)
+/cb_left_hand_info  # Left-hand configuration info topic
+/cb_left_hand_state # Left-hand state topic (range)
+/cb_left_hand_state_arc # Left-hand state topic (radians)
+/cb_right_hand_control_cmd # Control right-hand motion by range 0~255 (range)
+/cb_right_hand_control_cmd_arc # Control right-hand motion by arc -3.14~3.14 (radians)
+/cb_right_hand_force # Right-hand pressure (force) data topic
+/cb_right_hand_matrix_touch # Right-hand matrix pressure data topic list(6x12)
+/cb_right_hand_info # Right-hand configuration info topic
+/cb_right_hand_state # Right-hand state topic (range)
+/cb_right_hand_state_arc # Right-hand state topic (radians)
+
 ```
 
-### 获取手状态 Topic /cb_left_hand_state or /cb_right_hand_state
+### Get hand status topic /cb_left_hand_state or /cb_right_hand_state
 ```bash
 
 header: 
@@ -58,68 +59,70 @@ velocity: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 effort: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 ```
 **Description**: 
-手指运动指定位置 数据格式 sensor_msgs/JointState 
+Finger movement at specified location. Data format: sensor_msgs/JointState 
 **Parameters**:
-- `position`: 手指joint当前状态 list(float) L7长度:7 L10长度:10 L20长度:20 L25长度:25 每个元素范围0~255 
+- `position`: The current state of the finger joint. List(float) L7 length: 7 L10 length: 10 L20 length: 20 L25 length: 25 Each element ranges from 0 to 255.
 ---
 
-### 获取压感数据 Topic /cb_left_hand_force or /cb_right_hand_force
+### Acquire pressure sensitivity data Topic /cb_left_hand_force or /cb_right_hand_force
 ```bash
 rostopic echo /cb_left_hand_touch
 data: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 255.0, 255.0, 255.0, 255.0, 255.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 ```
 **Description**: 
-获取手指压感数据 数据格式 std_msgs/Float32MultiArray
+Data format for acquiring finger pressure sensitivity data
 **Parameters**:
 - `data`:
 ```bash
-索引0：大拇指法相压力值 0~255
-索引1：食指法相压力值 0~255
-索引2：中指法相压力值 0~255
-索引3：无名指法相压力值 0~255
-索引4：小拇指法相压力值 0~255
+Index 0:  Thumb normal pressure value 0~255
+Index 1:  Index finger normal pressure value 0~255
+Index 2:  Middle finger normal pressure value 0~255
+Index 3:  Ring finger normal pressure value 0~255
+Index 4:  Little finger normal pressure value 0~255
 
-索引5：大拇指切向压力值 0~255
-索引6：食指切向压力值 0~255
-索引7：中指切向压力值 0~255
-索引8：无名指切向压力值 0~255
-索引9：小拇指切向压力值 0~255
+Index 5:  Thumb tangential pressure value 0~255
+Index 6:  Index finger tangential pressure value 0~255
+Index 7:  Middle finger tangential pressure value 0~255
+Index 8:  Ring finger tangential pressure value 0~255
+Index 9:  Little finger tangential pressure value 0~255
 
-索引10：大拇指切向压力方向值 0~255 # 无压力方向则为255
-索引11：食指切向压力方向值 0~255
-索引12：中指切向压力方向值 0~255
-索引13：无名指切向压力方向值 0~255
-索引14：小拇指切向压力方向值 0~255
+Index 10: Thumb tangential pressure direction value 0~255 # 255 indicates no pressure direction
+Index 11: Index finger tangential pressure direction value 0~255
+Index 12: Middle finger tangential pressure direction value 0~255
+Index 13: Ring finger tangential pressure direction value 0~255
+Index 14: Little finger tangential pressure direction value 0~255
 
-索引15：大拇指接近感应值 0~255
-索引16：食指切接近感应值 0~255
-索引17：中指切接近感应值 0~255
-索引18：无名指接近感应值 0~255
-索引19：小拇指接近感应值 0~255
+Index 15: Thumb proximity value 0~255
+Index 16: Index finger proximity value 0~255
+Index 17: Middle finger proximity value 0~255
+Index 18: Ring finger proximity value 0~255
+Index 19: Little finger proximity value 0~255
+
 ```
 ---
 
 
 
 
-### 获取矩阵式压感数据 Topic /cb_left_hand_matrix_touch or /cb_right_hand_matrix_touch 注：只第二代压力传感器
+### Obtain Matrix Pressure Sensing Data Topic /cb_left_hand_matrix_touch or /cb_right_hand_matrix_touch Note: Only second-generation pressure sensors are supported.
 ```bash
 ros2 topic echo /cb_left_hand_matrix_touch
 data: "{"thumb_matrix": [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0,0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0,0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0,0, 0, 0, 0, 0]], "index_matrix": [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0,  0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], "middle_matrix": [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], "ring_matrix": [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], "little_matrix": [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]}"
 ```
 **Description**: 
-获取手指矩阵压感数据 数据格式 std_msgs/String Json
+Obtain finger matrix pressure sensitivity data. Data format: std_msgs/String JSON.
 **Parameters**:
 - `data`:
 ```bash
-thumb_matrix：大拇指矩阵压力值 0~255
-index_matrix：食指矩阵压力值 0~255
-middle_matrix：中指矩阵压力值 0~255
-ring_matrix：无名指矩阵压力值 0~255
-little_matrix：小拇指矩阵压力值 0~255
+thumb_matrix：Thumb matrix pressure values 0~255
+index_matrix：Index finger matrix pressure values 0~255
+middle_matrix：Middle finger matrix pressure values 0~255
+ring_matrix：Ring finger matrix pressure values 0~255
+little_matrix：Little finger matrix pressure values 0~255
+
 ```
 ---
-### 获取LinkerHand配置信息 Topic /cb_left_hand_info or /cb_right_hand_info
+### Retrieve LinkerHand configuration information Topic /cb_left_hand_info or /cb_right_hand_info
 ```bash
 ros2 topic echo /cb_right_hand_info
 data: "{\"version\": [7, 0, 0, 0], \"hand_joint\": \"L21\", \"speed\": [1, 0, 0, 0, 0, 0,\
@@ -138,20 +141,21 @@ data: "{\"version\": [7, 0, 0, 0], \"hand_joint\": \"L21\", \"speed\": [1, 0, 0,
   , \"middle_finger_tip\", \"ring_finger_tip\", \"little_finger_tip\"]}"
 ```
 **Description**: 
-获取LinkerHand配置信息 数据格式 std_msgs/String for Json
+Get LinkerHand configuration info Data format std_msgs/String for Json
 **Parameters**:
-- `version`: 手版本号 version[0]:表示L10 version[1]:表示版本 version[2]:表示批号 version[3]:76为左手82为右手 其他未内部编号
-- `hand_joint`: L10 or L20 or L25等
-- `speed`: 手指速度
-- `current`: 手指当前电压 (若支持)
-- `torque`: 手指扭矩 (若支持)
-- `is_touch`: 是否有压力传感器
-- `touch_type`: 传感器类型 (若支持)
-- `touch`: 传感器数据 (若支持)
-- `max_press_rco`: 最大电流
-- `fault`: 电机故障 0 为正常 其他为故障
-- `motor_temperature`: 当前电机温度
-- `finger_order`: 当前灵巧手手指电机顺序
+- `version`: hand version number version[0]: indicates L10 version[1]: indicates version version[2]: indicates batch number version[3]: 76 for left hand 82 for right hand others are internal codes
+- `hand_joint`: L10 or L20 or L25 etc.
+- `speed`: finger speed
+- `current`: current finger voltage (if supported)
+- `torque`: finger torque (if supported)
+- `is_touch`: whether a pressure sensor is present
+- `touch_type`: sensor type (if supported)
+- `touch`: sensor data (if supported)
+- `max_press_rco`: maximum current
+- `fault`: motor fault 0 is normal others indicate faults
+- `motor_temperature`: current motor temperature
+- `finger_order`: current dexterous hand finger motor order
+
 
 ---
 

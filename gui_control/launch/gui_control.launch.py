@@ -10,11 +10,11 @@ def generate_launch_description():
             name='left_hand_control_node',
             output='screen',
             parameters=[{
-                'hand_type': 'right',  # 配置Linker Hand灵巧手类型 left | right 字母为小写
-                'hand_joint': "G20",  # O6\L6\L7\L10\L20\G20(工业版)\L21 字母为大写
-                'topic_hz': 30, # topic发布频率
-                'is_touch': True, # 是否有压力传感器
-                'is_arc': False, # 是否发布弧度值topic
+                'hand_type': 'right',   # Dexterous hand orientation: 'left' | 'right' (lowercase)
+                'hand_joint': "L7",     # Hand model: O6 / L6 / L7 / L10 / L20 / G20 (industrial) / L21 (UPPERCASE)
+                'topic_hz': 30,         # Topic publish frequency (Hz)
+                'is_touch': True,       # Has pressure/tactile sensor
+                'is_arc': False,        # Publish values in radians (True) or not (False)
             }],
         ),
         # Node(

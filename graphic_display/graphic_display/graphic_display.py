@@ -14,13 +14,13 @@ from typing import Dict, List
 from linker_hand_ros2_sdk.LinkerHand.utils.init_linker_hand import InitLinkerHand
 
 class ForceGroupWindow(QtWidgets.QMainWindow):
-    """专用力传感器组可视化窗口"""
+    """Visualization window for dedicated force sensor group"""
     def __init__(self, group_id: int):
         super().__init__()
         self.setWindowTitle(f"Force Sensor Group {group_id+1}")
         self.setGeometry(100 + group_id*50, 100 + group_id*50, 800, 400)
         
-        # 图形设置
+        # Graphic settings
         self.canvas = FigureCanvasQTAgg(Figure(figsize=(8, 4)))
         self.setCentralWidget(self.canvas)
         self.ax = self.canvas.figure.add_subplot(111)
@@ -29,7 +29,7 @@ class ForceGroupWindow(QtWidgets.QMainWindow):
         self.ax.set_ylabel('Force (N)')
         self.ax.grid(True)
         
-        # 数据存储
+        # data storage
         self.buffer_size = 200
         self.x_data = np.arange(self.buffer_size)
         #self.channels = [f'Channel {i+1}' for i in range(5)]
@@ -38,10 +38,10 @@ class ForceGroupWindow(QtWidgets.QMainWindow):
         self.lines = {}
         self.data_ptr = 0
         
-        # 颜色设置
+        # Color settings
         colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']
         
-        # 创建曲线
+        # Create curve
         for i, name in enumerate(self.channels):
             self.lines[name], = self.ax.plot(
                 self.x_data,
@@ -53,22 +53,22 @@ class ForceGroupWindow(QtWidgets.QMainWindow):
         
         self.ax.legend(loc='upper right')
         self.ax.set_xlim(0, self.buffer_size)
-        self.ax.set_ylim(0, 300)  # 假设力传感器范围0-300N
+        self.ax.set_ylim(0, 300)  # Assuming the force sensor range is 0-300N
         
-        # 定时刷新
+        # Regular refresh
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.update_plot)
         self.timer.start(50)  # 20fps
     
     def add_data(self, new_data: List[float]):
-        """添加新数据点"""
+        """Add new data points"""
         self.data_ptr = (self.data_ptr + 1) % self.buffer_size
         for name, val in zip(self.channels, new_data):
             self.data[name][self.data_ptr] = float(val)
     
     def update_plot(self):
-        """更新绘图"""
-        # 更新曲线数据
+        """Update drawing"""
+        # Update curve data
         for name, line in self.lines.items():
             line.set_ydata(np.roll(self.data[name], -self.data_ptr))
         
@@ -78,33 +78,33 @@ class HandMonitor(Node):
     def __init__(self):
         super().__init__('graphic_display')
         
-        # 初始化Qt应用
+        # Initialize a Qt application
         self.app = QtWidgets.QApplication(sys.argv)
         
-        # 窗口管理
-        self.force_windows = {}  # 存储force组窗口 {group_id: window}
-        self.temp_window = None  # 温度窗口
-        self.torque_window = None  # 扭矩窗口
+        # window management
+        self.force_windows = {}  # Storage Force Group Window {group_id: window}
+        self.temp_window = None  # temperature window
+        self.torque_window = None  # Torque window
         self.hand_joint, self.hand_type = InitLinkerHand().current_hand()
         if self.hand_type == "left":
             self.topic = "/cb_left_hand_info"
         else:
             self.topic = "/cb_right_hand_info"
-        #self.topic = "/cb_left_hand_info"
-        # ROS2订阅
+            # self.topic = "/cb_left_hand_info"
+        # ROS2 subscription
         self.subscription = self.create_subscription(
             String,
             self.topic,
             self.data_callback,
             10)
         
-        # Qt事件处理定时器
+        # Qt event handling timer
         self.timer = self.create_timer(0.1, self.process_qt_events)
         
         self.get_logger().info("Hand monitor initialized")
     
     def data_callback(self, msg: String):
-        """处理手部数据回调"""
+        """Handling hand data callbacks"""
         try:
             data = json.loads(msg.data)
             if self.hand_type == "left":
@@ -114,16 +114,16 @@ class HandMonitor(Node):
             if isinstance(data, dict) and tmp in data:
                 hand_data = data[tmp]
                 
-                # 处理force数据 (每组force一个独立窗口)
+                # Process force data (each force group has its own window).
                 if 'force' in hand_data:
                     force_data = hand_data['force']
                     for group_id, group_values in enumerate(force_data):
-                        if len(group_values) == 5:  # 每组应有5个值
+                        if len(group_values) == 5:  # Each group should have 5 values.
                             if group_id not in self.force_windows:
                                 self.force_windows[group_id] = ForceGroupWindow(group_id)
                                 self.force_windows[group_id].show()
                             
-                            # 跨线程安全更新
+                            # Cross-thread safe update
                             if QtCore.QThread.currentThread() == self.app.thread():
                                 self.force_windows[group_id].add_data(group_values)
                             else:
@@ -134,18 +134,18 @@ class HandMonitor(Node):
                                     QtCore.Q_ARG(list, group_values)
                                 )
                 
-                # 处理温度数据 (单个窗口)
+                # Processing temperature data (single window)
                 if 'motor_temperature' in hand_data:
                     temp_data = hand_data['motor_temperature']
-                    if len(temp_data) == 10:  # 应有10个温度值
+                    if len(temp_data) == 10:  # There should be 10 temperature values.
                         if self.temp_window is None:
                             self.create_temp_window()
                         self.update_window_data(self.temp_window, temp_data)
                 
-                # 处理扭矩数据 (单个窗口)
+                # Processing torque data (single window)
                 # if 'torque' in hand_data:
                 #     torque_data = hand_data['torque']
-                #     if len(torque_data) == 5:  # 应有5个扭矩值
+                #     if len(torque_data) == 5:  # There should be 5 torque values.
                 #         if self.torque_window is None:
                 #             self.create_torque_window()
                 #         self.update_window_data(self.torque_window, torque_data)
@@ -154,7 +154,7 @@ class HandMonitor(Node):
             self.get_logger().error(f"Data processing error: {str(e)}")
     
     def create_temp_window(self):
-        """创建温度窗口"""
+        """Create a temperature window"""
         self.temp_window = DataPlotWindow(
             title="Motor Temperatures",
             ylabel="Temperature (°C)",
@@ -164,7 +164,7 @@ class HandMonitor(Node):
         self.temp_window.show()
     
     def create_torque_window(self):
-        """创建扭矩窗口"""
+        """Create a torque window"""
         self.torque_window = DataPlotWindow(
             title="Joint Torque",
             ylabel="Torque (Nm)",
@@ -174,7 +174,7 @@ class HandMonitor(Node):
         self.torque_window.show()
     
     def update_window_data(self, window, data):
-        """通用窗口数据更新"""
+        """General window data update"""
         if QtCore.QThread.currentThread() == self.app.thread():
             window.add_data(data)
         else:
@@ -186,10 +186,10 @@ class HandMonitor(Node):
             )
     
     def process_qt_events(self):
-        """处理Qt事件循环"""
+        """Handling the Qt event loop"""
         self.app.processEvents()
         
-        # 清理已关闭的窗口
+        # Clear closed windows
         self.force_windows = {k: v for k, v in self.force_windows.items() if v.isVisible()}
         if self.temp_window and not self.temp_window.isVisible():
             self.temp_window = None
@@ -197,11 +197,11 @@ class HandMonitor(Node):
             self.torque_window = None
     
     def run(self):
-        """启动Qt应用"""
+        """Launch the Qt application"""
         self.app.exec_()
     
     def destroy_node(self):
-        """清理资源"""
+        """Clean up resources"""
         for window in self.force_windows.values():
             window.close()
         if self.temp_window:
@@ -211,13 +211,13 @@ class HandMonitor(Node):
         super().destroy_node()
 
 class DataPlotWindow(QtWidgets.QMainWindow):
-    """通用数据绘图窗口"""
+    """General Data Plotting Window"""
     def __init__(self, title: str, ylabel: str, channel_count: int, y_range: tuple):
         super().__init__()
         self.setWindowTitle(title)
         self.setGeometry(100, 100, 800, 400)
         
-        # 图形设置
+        # Graphic settings
         self.canvas = FigureCanvasQTAgg(Figure(figsize=(8, 4)))
         self.setCentralWidget(self.canvas)
         self.ax = self.canvas.figure.add_subplot(111)
@@ -226,7 +226,7 @@ class DataPlotWindow(QtWidgets.QMainWindow):
         self.ax.set_ylabel(ylabel)
         self.ax.grid(True)
         
-        # 数据存储
+        # data storage
         self.buffer_size = 200
         self.x_data = np.arange(self.buffer_size)
         self.channels = [f'Channel {i+1}' for i in range(channel_count)]
@@ -235,7 +235,7 @@ class DataPlotWindow(QtWidgets.QMainWindow):
         self.lines = {}
         self.data_ptr = 0
         
-        # 创建曲线
+        # Create curve
         colors = matplotlib.colormaps['tab20'].colors
         for i, name in enumerate(self.channels):
             self.lines[name], = self.ax.plot(
@@ -250,19 +250,19 @@ class DataPlotWindow(QtWidgets.QMainWindow):
         self.ax.set_xlim(0, self.buffer_size)
         self.ax.set_ylim(*y_range)
         
-        # 定时刷新
+        # Regular refresh
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.update_plot)
         self.timer.start(50)
     
     def add_data(self, new_data: List[float]):
-        """添加新数据点"""
+        """Add new data points"""
         self.data_ptr = (self.data_ptr + 1) % self.buffer_size
         for name, val in zip(self.channels, new_data):
             self.data[name][self.data_ptr] = float(val)
     
     def update_plot(self):
-        """更新绘图"""
+        """Update drawing"""
         for name, line in self.lines.items():
             line.set_ydata(np.roll(self.data[name], -self.data_ptr))
         self.canvas.draw()
@@ -270,10 +270,10 @@ class DataPlotWindow(QtWidgets.QMainWindow):
 def main(args=None):
     rclpy.init(args=args)
     
-    # 必须在主线程创建节点
+    # Nodes must be created on the main thread.
     monitor = HandMonitor()
     
-    # 启动Qt线程
+    # Start Qt thread
     from threading import Thread
     qt_thread = Thread(target=monitor.run, daemon=True)
     qt_thread.start()

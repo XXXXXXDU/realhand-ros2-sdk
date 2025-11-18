@@ -11,25 +11,25 @@ class TemperaturePlot(QWidget):
         super().__init__()
         self.num_lines = num_lines
         self.labels = labels if labels else [f"Line {i+1}" for i in range(num_lines)]
-        self.data = [[] for _ in range(self.num_lines)]  # 初始化数据列表
-        self.max_points = 100  # 最大显示点数
+        self.data = [[] for _ in range(self.num_lines)]  # Initialize data list
+        self.max_points = 100  # Maximum number of display points
         self.setWindowTitle(title)
-        # 设置布局
+        # Set layout
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
-        # 初始化 matplotlib 图形
+        # Initialize matplotlib figure
         self.figure, self.ax = plt.subplots()
         self.canvas = FigureCanvas(self.figure)
         self.layout.addWidget(self.canvas)
 
-        # 初始化绘图曲线
+        # Initialize plot curves
         self.lines = [self.ax.plot([], [], label=self.labels[i])[0] for i in range(self.num_lines)]
         self.ax.set_xlim(0, self.max_points)
         self.ax.set_ylim(0, 100)
         self.ax.set_xlabel("Time")
         self.ax.set_ylabel("Value")
-        self.ax.legend(loc='upper left')  # 固定标签位置到左上角
+        self.ax.legend(loc='upper left')  # Fix legend position to upper left
 
     def update_data(self, new_data):
         for i in range(self.num_lines):
@@ -39,7 +39,7 @@ class TemperaturePlot(QWidget):
         self._update_plot()
 
     def _update_plot(self):
-        """内部方法: 更新绘图"""
+        """Internal method: update plot"""
         for i, line in enumerate(self.lines):
             line.set_data(range(len(self.data[i])), self.data[i])
 
@@ -49,20 +49,20 @@ class TemperaturePlot(QWidget):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
-    # 示例: 创建一个包含 3 条曲线的波形图
+    # Example: create a waveform plot with 3 curves
     waveform_plot = TemperaturePlot(num_lines=10)
     waveform_plot.resize(800, 400)
     waveform_plot.show()
 
-    # 模拟数据更新
+    # Simulate data updates
     timer = QTimer()
 
     def update():
         import random
-        values = [random.randint(0, 300) for _ in range(10)]  # 生成随机数据
+        values = [random.randint(0, 300) for _ in range(10)]  # Generate random data
         waveform_plot.update_data(values)
 
     timer.timeout.connect(update)
-    timer.start(100)  # 每 100 毫秒更新一次
+    timer.start(100)  # Update every 100 ms
 
     sys.exit(app.exec_())

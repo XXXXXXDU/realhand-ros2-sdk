@@ -1,11 +1,11 @@
 #!/usr/bin/env python3 
 # -*- coding: utf-8 -*-
 '''
-编译: colcon build --symlink-install
-启动命令:ros2 run linker_hand_ros2_sdk linker_hand_sdk
+Build: colcon build --symlink-install
+Launch command: ros2 run linker_hand_ros2_sdk linker_hand_sdk
 '''
-import rclpy,math,sys                                     # ROS2 Python接口库
-from rclpy.node import Node                      # ROS2 节点类
+import rclpy,math,sys
+from rclpy.node import Node
 import rclpy.time
 from std_msgs.msg import String, Header, Float32MultiArray
 from sensor_msgs.msg import JointState
@@ -45,7 +45,7 @@ class SettingInfoNode(Node):
             count += 1
         
 
-    # 设置速度
+    # Set speed
     def set_speed(self, speed=[91] * 10):
         cmd_dic = {
             "setting_cmd": "set_speed",
@@ -56,7 +56,7 @@ class SettingInfoNode(Node):
         }
         self.pub_msg(cmd_dic=cmd_dic)
 
-    # 设置扭矩
+    # Set torque
     def set_max_torque_limits(self, torque=[100] * 5):
         cmd_dic = {
             "setting_cmd": "set_max_torque_limits",
