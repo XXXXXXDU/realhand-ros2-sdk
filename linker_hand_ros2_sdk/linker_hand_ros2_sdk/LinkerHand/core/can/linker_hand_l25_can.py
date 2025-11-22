@@ -120,18 +120,18 @@ class LinkerHandL25Can:
         self.last_thumb_pos, self.last_index_pos,self.last_ring_pos,self.last_middle_pos, self.last_little_pos = None,None,None,None,None
         self.x01, self.x02, self.x03, self.x04,self.x05,self.x06,self.x07, self.x08,self.x09,self.x0A,self.x0B,self.x0C,self.x0D,self.x0E,self.speed = [],[],[],[],[],[],[],[],[],[],[],[],[],[],[]
         self.last_root1,self.last_yaw,self.last_roll,self.last_root2,self.last_tip = None,None,None,None,None
-        # 速度
+        # Speed
         self.x49, self.x4a, self.x4b, self.x4c, self.x4d,self.xc1 = [],[],[],[],[],[]
         self.x41,self.x42,self.x43,self.x44,self.x45 = [],[],[],[],[]
-        # 扭矩
+        # Torque
         self.x51, self.x52, self.x53, self.x54,self.x55 = [],[],[],[],[]
-        # 故障码
+        # Fault codes
         self.x59,self.x5a,self.x5b,self.x5c,self.x5d = [],[],[],[],[]
-        # 温度阈值
+        # Temperature thresholds
         self.x61,self.x62,self.x63,self.x64,self.x65 = [],[],[],[],[]
-        # 压感
+        # Pressure/force
         self.x90,self.x91,self.x92,self.x93 = [],[],[],[]
-        # 新压感
+        # New pressure sensors
         self.xb0,self.xb1,self.xb2,self.xb3,self.xb4,self.xb5 = [-1] * 5,[-1] * 5,[-1] * 5,[-1] * 5,[-1] * 5,[-1] * 5
         self.thumb_matrix = np.full((12, 6), -1)
         self.index_matrix = np.full((12, 6), -1)
@@ -152,7 +152,7 @@ class LinkerHandL25Can:
             160: 10,
             176: 11,
         }
-        # 根据操作系统初始化 CAN 总线
+        # Initialize CAN bus based on OS
         try:
             if sys.platform == "linux":
                 self.bus = can.interface.Bus(
@@ -169,7 +169,7 @@ class LinkerHandL25Can:
         except:
             print("Please insert CAN device")
 
-        # 启动接收线程
+        # Start receive thread
         self.receive_thread = threading.Thread(target=self.receive_response)
         self.receive_thread.daemon = True
         self.receive_thread.start()
@@ -204,7 +204,7 @@ class LinkerHandL25Can:
         """
         while self.running:
             try:
-                msg = self.bus.recv(timeout=1.0)  # 阻塞接收，1 秒超时
+                msg = self.bus.recv(timeout=1.0)  # Blocking receive, 1 s timeout
                 if msg:
                     self.process_response(msg)
             except can.CanError as e:
@@ -214,7 +214,7 @@ class LinkerHandL25Can:
     def set_joint_positions(self, joint_ranges):
         if len(joint_ranges) == 25:
             l25_pose = self.joint_map(joint_ranges)
-            # 使用列表推导式将列表每6个元素切成一个子数组
+            # Slice list into chunks of 6
             chunks = [l25_pose[i:i+6] for i in range(0, 30, 6)]
             self.send_command(FrameProperty.THUMB_POS, chunks[0])
             #time.sleep(0.001)
@@ -566,7 +566,7 @@ class LinkerHandL25Can:
     def joint_map(self, pose):
         l25_pose = [0.0] * 30
 
-        # 映射表，通过字典简化映射关系
+        # Mapping table; simplify with a dict
         mapping = {
             0: 10,  1: 5,   2: 0,   3: 15,  4: None,  5: 20,
             6: None, 7: 6,   8: 1,   9: 16,  10: None, 11: 21,
@@ -575,7 +575,7 @@ class LinkerHandL25Can:
             24: None, 25: 9,  26: 4,   27: 19, 28: None, 29: 24
         }
 
-        # 遍历映射字典，进行值的映射
+        # Apply mapping
         for l25_idx, pose_idx in mapping.items():
             if pose_idx is not None:
                 l25_pose[l25_idx] = pose[pose_idx]
@@ -592,7 +592,7 @@ class LinkerHandL25Can:
             19: 8,  20: 3,  21: 18, 23: 23, 25: 9,   26: 4,
             27: 19, 29: 24
         }
-        # 遍历映射字典，更新pose的值
+        # Update pose according to mapping
         for l25_idx, pose_idx in mapping.items():
             pose[pose_idx] = l25_state[l25_idx]
         return pose
@@ -696,7 +696,7 @@ class LinkerHandL25Can:
         self.send_command(FrameProperty.HAND_APPROACH_INC,[])
         return self.x93
     def get_force(self):
-        '''获取压感数据'''
+        '''Get pressure/force data'''
         return [self.x90,self.x91 , self.x92 , self.x93]
     
     def get_matrix_touch(self):
@@ -748,16 +748,25 @@ class LinkerHandL25Can:
             self.bus.shutdown()
     
     '''
-    这个方法只用于展示数据关系映射，使用的话最好使用上面的方法
+    This method only demonstrates the mapping; for actual use, prefer the methods above.
     '''
     def joint_map_2(self, pose):
-        l25_pose = [0.0]*30 #L25 CAN默认接收30个数据 pose控制L25发送的指令数据默认25个，这里进行映射
+        l25_pose = [0.0]*30 # L25 CAN expects 30 values; the control pose has 25 values, so map accordingly
         '''
-        需要进行映射
-        # L25 CAN数据格式
-        #["拇指横摆0-10", "拇指侧摆1-5", "拇指根部2-0", "拇指中部3-15", "预留4-", "拇指指尖5-20", "预留6-", "食指侧摆7-6", "食指根部8-1", "食指中部9-16", "预留10-", "食指指尖11-21", "预留12-", "预留13-", "中指根部14-2", "中指中部15-17", "预留16-", "中指指尖17-22", "预留18-", "无名指侧摆19-8", "无名指根部20-3", "无名指中部21-18", "预留22-", "无名指指尖23-23", "预留24-", "小指侧摆25-9", "小指根部26-4", "小指中部27-19", "预留28-", "小指指尖29-24"]
-        # CMD 接收到的数据格式
-        #["拇指根部0", "食指根部1", "中指根部2", "无名指根部3","小指根部4","拇指侧摆5","食指侧摆6","中指侧摆","无名指侧摆8","小指侧摆9","拇指横摆10","预留","预留","预留","预留","拇指中部15","食指中部16","中指中部17","无名指中部18","小指中部19","拇指指尖20","食指指尖21","中指指尖22","无名指指尖23","小指指尖24"]
+        Mapping needed
+        # L25 CAN data format
+        # ["Thumb horizontal abduction 0-10", "Thumb abduction 1-5", "Thumb root 2-0", "Thumb middle 3-15", "Reserved 4-",
+        #  "Thumb tip 5-20", "Reserved 6-", "Index abduction 7-6", "Index root 8-1", "Index middle 9-16", "Reserved 10-",
+        #  "Index tip 11-21", "Reserved 12-", "Reserved 13-", "Middle root 14-2", "Middle middle 15-17", "Reserved 16-",
+        #  "Middle tip 17-22", "Reserved 18-", "Ring abduction 19-8", "Ring root 20-3", "Ring middle 21-18", "Reserved 22-",
+        #  "Ring tip 23-23", "Reserved 24-", "Little abduction 25-9", "Little root 26-4", "Little middle 27-19", "Reserved 28-",
+        #  "Little tip 29-24"]
+        # CMD data format
+        # ["Thumb root 0", "Index root 1", "Middle root 2", "Ring root 3", "Little root 4",
+        #  "Thumb abduction 5", "Index abduction 6", "Middle abduction 7", "Ring abduction 8", "Little abduction 9",
+        #  "Thumb horizontal abduction 10", "Reserved", "Reserved", "Reserved", "Reserved",
+        #  "Thumb middle 15", "Index middle 16", "Middle middle 17", "Ring middle 18", "Little middle 19",
+        #  "Thumb tip 20", "Index tip 21", "Middle tip 22", "Ring tip 23", "Little tip 24"]
         '''
         l25_pose[0] = pose[10]
         l25_pose[1] = pose[5]

@@ -10,9 +10,9 @@ def generate_launch_description():
             output='screen',
             parameters=[{
                 'hand_type': 'left',
-                'hand_joint': "L10", # 这里需要修改为实际Linker Hand的型号 L7、L10、L20、L21、L25
-                'is_touch': True, # 是否带有压力传感器
-                'can': 'can0', # 这里需要修改为实际的CAN总线名称
+                'hand_joint': "L10", # Change to the actual Linker Hand model: L7, L10, L20, L21, L25
+                'is_touch': True, # Whether it has pressure sensors
+                'can': 'can0', # Change to the actual CAN bus name
             }],
         ),
 
@@ -23,9 +23,9 @@ def generate_launch_description():
             output='screen',
             parameters=[{
                 'hand_type': 'right',
-                'hand_joint': "L10", # 这里需要修改为实际Linker Hand的型号 L7、L10、L20、L21、L25
-                'is_touch': True, # 是否带有压力传感器
-                'can': 'can0', # 这里需要修改为实际的CAN总线名称
+                'hand_joint': "L10", # Change to the actual Linker Hand model: L7, L10, L20, L21, L25
+                'is_touch': True, # Whether it has pressure sensors
+                'can': 'can0', # Change to the actual CAN bus name
             }],
         ),
     ])

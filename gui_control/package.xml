@@ -4,7 +4,7 @@
   <name>gui_control</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
-  <maintainer email="TODO">linker-robot</maintainer>
+  <maintainer email="TODO@gmail.com">linker-robot</maintainer>
   <license>TODO: License declaration</license>
 
   <test_depend>ament_copyright</test_depend>

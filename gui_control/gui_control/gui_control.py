@@ -67,6 +67,7 @@ class ROS2NodeManager(QObject):
             self.torque_pub = self.node.create_publisher(
                 String, f'/cb_hand_setting_cmd', 10)
             self.status_updated.emit("info", f"ROS2 node initialized successfully: {self.hand_type} {self.hand_joint}")
+            time.sleep(.5)
             
             # Start ROS2 spin thread
             self.spin_thread = threading.Thread(target=self.spin_node, daemon=True)
@@ -541,9 +542,9 @@ class HandControlGUI(QWidget):
         hand_info_group = QGroupBox("Hand Info")
         hand_info_layout = QVBoxLayout(hand_info_group)
         info_text = f"""Hand type: {self.hand_type}
-Joint model: {self.hand_joint}
-Joint count: {len(self.hand_config.joint_names)}
-Publish rate: {self.ros_manager.hz} Hz"""
+            Joint model: {self.hand_joint}
+            Joint count: {len(self.hand_config.joint_names)}
+            Publish rate: {self.ros_manager.hz} Hz"""
         self.hand_info_label = QLabel(info_text)
         self.hand_info_label.setWordWrap(True)
         hand_info_layout.addWidget(self.hand_info_label)

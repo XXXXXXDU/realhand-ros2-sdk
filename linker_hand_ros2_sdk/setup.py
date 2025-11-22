@@ -20,7 +20,7 @@ data_files = [
 #     if files:
 #         relative_path = os.path.relpath(root, os.path.join(this_dir, package_name))
 #         target_path = os.path.join('share', package_name, relative_path)
-#         # 修复这里：路径必须是相对路径
+#         # Fix here: the path must be a relative path
 #         files_full_path = [os.path.relpath(os.path.join(root, f), start=os.getcwd()) for f in files]
 #         data_files.append((target_path, files_full_path))
         

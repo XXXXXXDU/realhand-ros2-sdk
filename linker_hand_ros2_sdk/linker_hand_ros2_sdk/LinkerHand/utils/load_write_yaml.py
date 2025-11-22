@@ -4,10 +4,10 @@
 Author: HJX
 Date: 2025-04-01 14:09:21
 LastEditors: Please set LastEditors
-LastEditTime: 2025-04-11 10:19:01
-FilePath: /LinkerHand_Python_SDK/LinkerHand/utils/load_write_yaml.py
-Description: 
-symbol_custom_string_obkorol_copyright: 
+LastEditTime: 2025-11-21 (Translated)
+FilePath: /Linker_Hand_SDK_ROS/src/linker_hand_sdk_ros/scripts/LinkerHand/utils/init_linker_hand.py
+Description:
+symbol_custom_string_obkorol_copyright:
 '''
 import yaml, os, sys
 class LoadWriteYaml():

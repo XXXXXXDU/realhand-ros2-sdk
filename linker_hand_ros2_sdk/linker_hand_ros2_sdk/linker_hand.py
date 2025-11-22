@@ -1,14 +1,14 @@
 #!/usr/bin/env python3 
 # -*- coding: utf-8 -*-
 '''
-编译: colcon build --symlink-install
-启动命令:ros2 run linker_hand_ros2_sdk linker_hand_sdk
+Build: colcon build --symlink-install
+Launch: ros2 run linker_hand_ros2_sdk linker_hand_sdk
 '''
-import rclpy,math,sys                                     # ROS2 Python接口库
+import rclpy,math,sys                                     # ROS2 Python interface library
 import subprocess
 import time
 
-from rclpy.node import Node                      # ROS2 节点类
+from rclpy.node import Node                      # ROS2 node class
 import numpy as np
 from std_msgs.msg import String, Header, Float32MultiArray
 from sensor_msgs.msg import JointState
@@ -22,7 +22,7 @@ from linker_hand_ros2_sdk.LinkerHand.utils.open_can import OpenCan
 class LinkerHand(Node):
     def __init__(self, name):
         super().__init__(name)
-        # 声明参数（带默认值）
+        # Declare parameters (with default values)
         self.declare_parameter('hand_type', 'left')
         self.declare_parameter('hand_joint', 'L6')
         self.declare_parameter('is_touch', False)
@@ -30,7 +30,7 @@ class LinkerHand(Node):
         self.declare_parameter('modbus', "None")        
 
 
-        # 获取参数值
+        # Get parameter values
         self.hand_type = self.get_parameter('hand_type').value
         self.hand_joint = self.get_parameter('hand_joint').value
         self.is_touch = self.get_parameter('is_touch').value
@@ -85,7 +85,7 @@ class LinkerHand(Node):
             time.sleep(0.1)
             self.touch_type = self.api.get_touch_type()
             self.hand_cmd_sub = self.create_subscription(JointState, '/cb_left_hand_control_cmd', self.left_hand_control_cb,10)
-            #self.hand_cmd_arc_sub = self.create_subscription(JointState, '/cb_left_hand_control_cmd_arc', self.left_hand_control_arc_cb,10)
+            # self.hand_cmd_arc_sub = self.create_subscription(JointState, '/cb_left_hand_control_cmd_arc', self.left_hand_control_arc_cb,10)
             self.hand_state_pub = self.create_publisher(JointState, '/cb_left_hand_state',10)
             self.hand_state_arc_pub = self.create_publisher(JointState, '/cb_left_hand_state_arc',10)
             self.hand_info_pub = self.create_publisher(String, '/cb_left_hand_info', 10)
@@ -104,7 +104,7 @@ class LinkerHand(Node):
             time.sleep(0.1)
             self.touch_type = self.api.get_touch_type()
             self.hand_cmd_sub = self.create_subscription(JointState, '/cb_right_hand_control_cmd', self.right_hand_control_cb,10)
-            #self.hand_cmd_arc_sub = self.create_subscription(JointState, '/cb_right_hand_control_cmd_arc', self.right_hand_control_arc_cb,10)
+            # self.hand_cmd_arc_sub = self.create_subscription(JointState, '/cb_right_hand_control_cmd_arc', self.right_hand_control_arc_cb,10)
             self.hand_state_pub = self.create_publisher(JointState, '/cb_right_hand_state',10)
             self.hand_state_arc_pub = self.create_publisher(JointState, '/cb_right_hand_state_arc',10)
             self.hand_info_pub = self.create_publisher(String, '/cb_right_hand_info', 10)
@@ -124,7 +124,7 @@ class LinkerHand(Node):
         if self.hand_joint.upper() == "O6" or self.hand_joint.upper() == "L6" or self.hand_joint.upper() == "L6P":
             pose = [200, 255, 255, 255, 255, 180]
             torque = [250, 250, 250, 250, 250, 250]
-            # O6 最大速度阈值
+            # O6 maximum speed threshold
             speed = [200, 250, 250, 250, 250, 250]
         elif self.hand_joint == "L7":
             # The data length of L7 is 7, reinitialize here
@@ -144,7 +144,7 @@ class LinkerHand(Node):
         elif self.hand_joint == "L25":
             pose = [75, 255, 255, 255, 255, 176, 97, 81, 114, 147, 202, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255]
         if pose is not None:
-            for i in range(1): # 循环设置3次，防止数据丢失
+            for i in range(1): # Loop set 3 times to prevent data loss
                 self.api.set_speed(speed=speed)
                 time.sleep(0.1)
                 self.api.set_torque(torque=torque)
@@ -188,7 +188,7 @@ class LinkerHand(Node):
         count = 0
         while True:
             self._get_hand_state_v2()
-            if count % 4 == 0 and self.is_touch == True and self.touch_type == 2: # 如果配置了压感并且压感验证了类型为矩阵式压感
+            if count % 4 == 0 and self.is_touch == True and self.touch_type == 2: # If touch is configured and the type is verified as matrix touch
                 self.get_matrix_touch_v2()
             if count % 25 == 0:
                 self.get_hand_info_v2()
@@ -203,7 +203,7 @@ class LinkerHand(Node):
             self.pub_hand_state(hand_state=self.last_hand_state)
             self.pub_hand_info(dic=self.last_hand_info)
             m_t.data = json.dumps(self.matrix_dic)
-            if self.is_touch == True and self.touch_type == 2: # 如果配置了压感并且压感验证了类型为矩阵式压感
+            if self.is_touch == True and self.touch_type == 2: # If touch is configured and the type is verified as matrix touch
                 self.matrix_touch_pub.publish(m_t)
             time.sleep(0.033)
 
@@ -284,7 +284,7 @@ class LinkerHand(Node):
                     "touch_type": self.touch_type,
                     "finger_order": self.api.get_finger_order() # Finger motor order
                 }
-                #self.last_hand_info = data
+                # self.last_hand_info = data
                 self.pub_hand_info(dic=data)
             time.sleep(0.3)
 
@@ -314,7 +314,7 @@ class LinkerHand(Node):
         while True:
             if self.touch_pub.get_subscription_count() > 0:
                 if self.is_touch == True:
-                    #self.touch_type = self.api.get_touch_type()
+                    # self.touch_type = self.api.get_touch_type()
                     if self.touch_type == 2:
                         break
                         self.t_force = self.api.get_touch()
@@ -367,14 +367,14 @@ class LinkerHand(Node):
     def left_hand_control_cb(self,msg):
         now = time.time()
         if now - self.last_process_time < self.min_interval:
-            return  # 丢弃当前帧，限频处理
+            return  # Drop current frame, rate limit
         self.last_process_time = now
         tmp_pose = [0] * 6
         pose = list(msg.position)
         if len(pose) == 0:
             return
         else:
-            '''左手接收控制topic回调 for range'''
+            '''Left hand receives control topic callback for range'''
             self.api.finger_move(pose=pose)
         vel = list(msg.velocity)
         self.vel = vel
@@ -405,9 +405,9 @@ class LinkerHand(Node):
             return
         now = time.time()
         if now - self.last_process_time < self.min_interval:
-            return  # 丢弃当前帧，限频处理
+            return  # Drop current frame, rate limit
         self.last_process_time = now
-        '''左手接收控制topic回调 for arc'''
+        '''Left hand receives control topic callback for arc'''
         pose_range = self.api.arc_to_range_left(msg.position,self.hand_joint)
         self.api.finger_move(pose=list(pose_range))
         vel = list(msg.velocity)
@@ -437,15 +437,15 @@ class LinkerHand(Node):
     def right_hand_control_cb(self,msg):
         now = time.time()
         if now - self.last_process_time < self.min_interval:
-            return  # 丢弃当前帧，限频处理
+            return  # Drop current frame, rate limit
         self.last_process_time = now
-        '''右手接收控制topic回调 for range'''
+        '''Right hand receives control topic callback for range'''
         pose = list(msg.position)
         tmp_pose = [0] * 6
         if len(pose) == 0:
             return
         else:
-            '''右手接收控制topic回调 for range'''
+            '''Right hand receives control topic callback for range'''
             self.api.finger_move(pose=pose)
         self.api.finger_move(pose=list(msg.position))
         vel = list(msg.velocity)
@@ -477,9 +477,9 @@ class LinkerHand(Node):
             return
         now = time.time()
         if now - self.last_process_time < self.min_interval:
-            return  # 丢弃当前帧，限频处理
+            return  # Drop current frame, rate limit
         self.last_process_time = now
-        '''右手接收控制topic回调 for arc'''
+        '''Right hand receives control topic callback for arc'''
         pose_range = self.api.arc_to_range_right(msg.position,self.hand_joint)
         print(pose_range, flush=True)
         self.api.finger_move(pose=list(pose_range))
@@ -508,7 +508,7 @@ class LinkerHand(Node):
                 self.api.set_joint_speed(speed=speed)
 
     def hand_setting_cb(self,msg):
-        '''控制命令回调'''
+        '''Control command callback'''
         data = json.loads(msg.data)
         print(f"Received setting command: {data['setting_cmd']}",flush=True)
         try:
@@ -550,7 +550,7 @@ class LinkerHand(Node):
             if data["setting_cmd"] == "show_fun_table": # Get faults
                 f = hand.show_fun_table()
         except:
-            print("命令参数错误")
+            print("Command parameter error")
 
 
     def close_can(self):
@@ -575,11 +575,11 @@ def main(args=None):
         else:
             ColorMsg(msg=f"SDK V1", color="green")
             node.run()
-        rclpy.spin(node)         # 主循环，监听 ROS 回调
+        rclpy.spin(node)         # Main loop, listen for ROS callbacks
     except KeyboardInterrupt:
-        print("收到 Ctrl+C，准备退出...")
+        print("Received Ctrl+C, preparing to exit...")
     finally:
-        node.close_can()         # 关闭 CAN 或其他硬件资源
-        node.destroy_node()      # 销毁 ROS 节点
-        rclpy.shutdown()         # 关闭 ROS
-        print("程序已退出。")
+        node.close_can()         # Close CAN or other hardware resources
+        node.destroy_node()      # Destroy ROS node
+        rclpy.shutdown()         # Shut down ROS
+        print("Program exited.")

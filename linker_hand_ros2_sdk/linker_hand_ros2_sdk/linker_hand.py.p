@@ -1,14 +1,14 @@
 #!/usr/bin/env python3 
 # -*- coding: utf-8 -*-
 '''
-编译: colcon build --symlink-install
-启动命令:ros2 run linker_hand_ros2_sdk linker_hand_sdk
+Build: colcon build --symlink-install
+Launch: ros2 run linker_hand_ros2_sdk linker_hand_sdk
 '''
 from re import A
-import rclpy,sys                                     # ROS2 Python接口库
+import rclpy,sys                                     # ROS2 Python interface library
 import time
 
-from rclpy.node import Node                      # ROS2 节点类
+from rclpy.node import Node                      # ROS2 node class
 from std_msgs.msg import String, Header, Float32MultiArray
 from sensor_msgs.msg import JointState
 import time, json
@@ -20,7 +20,7 @@ from linker_hand_ros2_sdk.LinkerHand.utils.open_can import OpenCan
 class LinkerHand(Node):
     def __init__(self, name):
         super().__init__(name)
-        # 声明参数（带默认值）
+        # Declare parameters (with default values)
         self.declare_parameter('hand_type', 'left')
         self.declare_parameter('hand_joint', 'L6')
         self.declare_parameter('is_touch', False)
@@ -28,7 +28,7 @@ class LinkerHand(Node):
         self.declare_parameter('modbus', "None")        
 
 
-        # 获取参数值
+        # Get parameter values
         self.hand_type = self.get_parameter('hand_type').value
         self.hand_joint = self.get_parameter('hand_joint').value
         self.is_touch = self.get_parameter('is_touch').value
@@ -51,7 +51,7 @@ class LinkerHand(Node):
         self.hand_setting_sub = self.create_subscription(String,'/cb_hand_setting_cmd', self.hand_setting_cb, 10)
         self._init_hand()
         time.sleep(1)
-        self.run_count = 0 # 计数器，用于记录运行次数
+        self.run_count = 0 # Counter to record run iterations
         self.timer = self.create_timer(0.01, self.run)  # 100 Hz
 
     def _init_hand(self):
@@ -78,7 +78,7 @@ class LinkerHand(Node):
         if self.hand_joint.upper() == "O6" or self.hand_joint.upper() == "L6" or self.hand_joint.upper() == "L6P":
             pose = [200, 255, 255, 255, 255, 180]
             torque = [250, 250, 250, 250, 250, 250]
-            # O6 最大速度阈值
+            # O6 maximum speed threshold
             speed = [200, 250, 250, 250, 250, 250]
         elif self.hand_joint == "L7":
             # The data length of L7 is 7, reinitialize here
@@ -95,7 +95,7 @@ class LinkerHand(Node):
         elif self.hand_joint == "L25":
             pose = [75, 255, 255, 255, 255, 176, 97, 81, 114, 147, 202, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255]
         if pose is not None:
-            for i in range(1): # 循环设置3次，防止数据丢失
+            for i in range(1): # Loop set 3 times to prevent data loss
                 self.api.set_speed(speed=speed)
                 time.sleep(0.1)
                 self.api.set_torque(torque=torque)
@@ -121,8 +121,8 @@ class LinkerHand(Node):
     def run(self):
         if self.cmd_lock == False:
             if self.run_count %  2 == 0:
-                #print(f"{self.run_count}:接收CMD指令", flush=True)
-                # 先判断是否需要执行手指运动
+                # print(f"{self.run_count}: received CMD command", flush=True)
+                # First determine whether to execute finger movement
                 if self.last_hand_post_cmd != None:
                     self.api.finger_move(pose=self.last_hand_post_cmd)
                     self.last_hand_post_cmd = None
@@ -153,49 +153,49 @@ class LinkerHand(Node):
                     self.last_hand_vel_cmd = None
                     time.sleep(0.005)
             if self.run_count %  2 == 0 and self.hand_state_pub.get_subscription_count() > 0:
-                # 获取手指状态并且发布
+                # Get finger state and publish
                 state = self.api.get_state()
                 speed = self.api.get_joint_speed()
                 msg = self.joint_state_msg(state, speed)
                 self.hand_state_pub.publish(msg)
-                #print(f"{self.run_count}:发布手指状态", flush=True)
+                # print(f"{self.run_count}: published finger state", flush=True)
             if self.run_count % 4 == 0 and self.is_touch == True and self.touch_type == 1 and self.touch_pub.get_subscription_count() > 0:
-                """单点式压力传感器"""
+                """Single-point pressure sensor"""
                 force = self.api.get_force()
                 msg = Float32MultiArray()
                 msg.data = force
                 self.touch_pub.publish(msg)
             if self.is_touch == True and self.touch_type == 2 and self.matrix_touch_pub.get_subscription_count() > 0:
-                """矩阵式压力传感器"""
+                """Matrix pressure sensor"""
                 msg = String()
                 if self.run_count % 5 == 0:
                     self.matrix_dic["thumb_matrix"] = self.api.get_thumb_matrix_touch().tolist()
                     msg.data = json.dumps(self.matrix_dic)
                     self.matrix_touch_pub.publish(msg)
                     time.sleep(0.006)
-                    #print(f"{self.run_count}:获取到大拇指", flush=True)
+                    # print(f"{self.run_count}: obtained thumb", flush=True)
                 if self.run_count % 7 == 0:
                     self.matrix_dic["index_matrix"] = self.api.get_index_matrix_touch().tolist()
                     time.sleep(0.006)
-                    #print(f"{self.run_count}:获取到食指", flush=True)
+                    # print(f"{self.run_count}: obtained index finger", flush=True)
                 if self.run_count % 11 == 0:
                     self.matrix_dic["middle_matrix"] = self.api.get_middle_matrix_touch().tolist()
                     msg.data = json.dumps(self.matrix_dic)
                     self.matrix_touch_pub.publish(msg)
                     time.sleep(0.006)
-                    #print(f"{self.run_count}:获取到中指", flush=True)
+                    # print(f"{self.run_count}: obtained middle finger", flush=True)
                 if self.run_count % 13 == 0:
                     self.matrix_dic["ring_matrix"] = self.api.get_ring_matrix_touch().tolist()
                     time.sleep(0.006)
-                    #print(f"{self.run_count}:获取到无名指", flush=True)
+                    # print(f"{self.run_count}: obtained ring finger", flush=True)
                 if self.run_count % 17 == 0:
                     self.matrix_dic["little_matrix"] = self.api.get_little_matrix_touch().tolist()
                     msg.data = json.dumps(self.matrix_dic)
                     self.matrix_touch_pub.publish(msg)
                     time.sleep(0.006)
-                    #print(f"{self.run_count}:获取到小拇指", flush=True)
+                    # print(f"{self.run_count}: obtained little finger", flush=True)
             if self.run_count == 19 and self.hand_info_pub.get_subscription_count() > 0:
-                """手部信息"""
+                """Hand information"""
                 data = {
                     "version": self.embedded_version, # Dexterous hand version number
                     "hand_joint": self.hand_joint, # Dexterous hand joint type
@@ -211,9 +211,9 @@ class LinkerHand(Node):
                 msg = String()
                 msg.data = json.dumps(data)
                 self.hand_info_pub.publish(msg)
-                #print(f"{self.run_count}:发布信息", flush=True)
+                # print(f"{self.run_count}: published info", flush=True)
             if self.run_count == 20:
-                #print(f"{self.run_count}:重置计数器", flush=True)
+                # print(f"{self.run_count}: reset counter", flush=True)
                 self.run_count = 0
             self.run_count += 1
             time.sleep(0.005)
@@ -241,7 +241,7 @@ class LinkerHand(Node):
     
 
     def hand_setting_cb(self,msg):
-        '''控制命令回调'''
+        '''Control command callback'''
         data = json.loads(msg.data)
         print(f"Received setting command: {data['setting_cmd']}",flush=True)
         try:
@@ -284,7 +284,7 @@ class LinkerHand(Node):
             if data["setting_cmd"] == "show_fun_table": # Get faults
                 f = hand.show_fun_table()
         except:
-            print("命令参数错误")
+            print("Command parameter error")
             self.cmd_lock = False
         finally:
             self.cmd_lock = False
@@ -300,11 +300,11 @@ def main(args=None):
         rclpy.init(args=args)
         node = LinkerHand("linker_hand_sdk")
         embedded_version = node.embedded_version
-        rclpy.spin(node)         # 主循环，监听 ROS 回调
+        rclpy.spin(node)         # Main loop, listen for ROS callbacks
     except KeyboardInterrupt:
-        print("收到 Ctrl+C，准备退出...")
+        print("Received Ctrl+C, preparing to exit...")
     finally:
-        # node.close_can()         # 关闭 CAN 或其他硬件资源
-        # node.destroy_node()      # 销毁 ROS 节点
-        # rclpy.shutdown()         # 关闭 ROS
-        print("程序已退出。")
+        # node.close_can()         # Close CAN or other hardware resources
+        # node.destroy_node()      # Destroy ROS node
+        # rclpy.shutdown()         # Shut down ROS
+        print("Program exited.")

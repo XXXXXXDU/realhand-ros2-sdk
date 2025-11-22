@@ -10,7 +10,6 @@ from utils.open_can import OpenCan
 from utils.color_msg import ColorMsg
 
 
-
 class FrameProperty(Enum):
     INVALID_FRAME_PROPERTY = 0x00
     JOINT_POSITION_RCO = 0x01
@@ -89,7 +88,7 @@ class LinkerHandL10Can:
             else:
                 raise EnvironmentError("Unsupported platform for CAN interface")
         except:
-            #print("Please insert CAN device")
+            # print("Please insert CAN device")
             ColorMsg(msg="Warning: Please insert CAN device", color="red")
 
     def send_frame(self, frame_property, data_list,sleep=0.003):
@@ -109,15 +108,13 @@ class LinkerHandL10Can:
                 self.bus = can.interface.Bus(channel=self.can_channel, interface="socketcan", bitrate=self.baudrate)
             else:
                 print("Reconnecting CAN devices ....")
-            # time.sleep(1)
-            # 
         time.sleep(sleep)
 
     def set_joint_positions(self, joint_angles):
-        """Set the positions of 10 joints (joint_angles: list of 10 values)."""
+        """Set positions of 10 joints (joint_angles: list of 10 values)."""
         self.joint_angles = joint_angles
         self.is_cmd = True
-        # Send angle control in frames, L10 protocol splits into first 6 and last 4
+        # Angle control is split into two frames by the L10 protocol: first 6, then last 4
         self.send_frame(FrameProperty.JOINT_POSITION2_RCO, self.joint_angles[6:])
         time.sleep(0.001)
         self.send_frame(FrameProperty.JOINT_POSITION_RCO, self.joint_angles[:6])
@@ -126,12 +123,12 @@ class LinkerHandL10Can:
         
 
     def set_max_torque_limits(self, pressures,type="get"):
-        """Set maximum torque limits"""
+        """Set maximum torque limits."""
         if type == "get":
             self.pressures = [0.0]
         else:
             self.pressures = pressures[:5]
-        #self.send_frame(FrameProperty.MAX_PRESS_RCO, self.pressures)
+        # self.send_frame(FrameProperty.MAX_PRESS_RCO, self.pressures)
         
         
     def set_joint_speed_l10(self,speed=[180]*5):
@@ -139,7 +136,9 @@ class LinkerHandL10Can:
         for i in range(2):
             time.sleep(0.01)
             self.send_frame(0x05, speed)
+
     def set_speed(self,speed=[180]*5):
+        """Set speed. Accepts 5 values (per finger group) or 10 values (per joint)."""
         if len(speed) == 5:
             self.x05 = speed
             for i in range(2):
@@ -152,28 +151,40 @@ class LinkerHandL10Can:
                 self.send_frame(0x06, speed[5:])
         else:
             raise ValueError("Speed list must have 10 elements.")
+
     def request_all_status(self):
-        """Get all joint positions and pressures."""
+        """Request all joint positions and pressures."""
         self.send_frame(FrameProperty.REQUEST_DATA_RETURN, [])
-    ''' -------------------Pressure Sensors---------------------- '''
+
+    # ------------------- Pressure/Tactile Sensors ----------------------
     def get_normal_force(self):
+        """Request five-finger normal force."""
         self.send_frame(FrameProperty.HAND_NORMAL_FORCE,[],sleep=0.01)
 
     def get_tangential_force(self):
+        """Request five-finger tangential force."""
         self.send_frame(FrameProperty.HAND_TANGENTIAL_FORCE,[],sleep=0.01)
 
     def get_tangential_force_dir(self):
+        """Request five-finger tangential force direction."""
         self.send_frame(FrameProperty.HAND_TANGENTIAL_FORCE_DIR,[],sleep=0.01)
+
     def get_approach_inc(self):
+        """Request five-finger proximity increment."""
         self.send_frame(FrameProperty.HAND_APPROACH_INC,[],sleep=0.01)
-    ''' -------------------Motor Temperature---------------------- '''
+
+    # ------------------- Motor Temperature ----------------------
     def get_motor_temperature(self):
+        """Request motor temperatures."""
         self.send_frame(FrameProperty.MOTOR_TEMPERATURE_1,[],sleep=0.01)
         self.send_frame(FrameProperty.MOTOR_TEMPERATURE_2,[],sleep=0.01)
+
     # Motor fault codes
     def get_motor_fault_code(self):
+        """Request motor fault codes."""
         self.send_frame(0x35,[],sleep=0.1)
         self.send_frame(0x36,[],sleep=0.1)
+
     def receive_response(self):
         """Receive CAN responses and process them."""
         while self.running:
@@ -216,7 +227,7 @@ class LinkerHandL10Can:
                 d = list(response_data)
                 self.tangential_force_dir = [float(i) for i in d]
             elif frame_type == 0x23:
-                # Five-finger approach increment
+                # Five-finger proximity increment
                 d = list(response_data)
                 self.approach_inc = [float(i) for i in d]
             elif frame_type == 0x33:
@@ -236,7 +247,7 @@ class LinkerHandL10Can:
                 elif len(d) == 7:
                     index = self.matrix_map.get(d[0])
                     if index is not None:
-                        self.thumb_matrix[index] = d[1:]  # Remove the first flag bit
+                        self.thumb_matrix[index] = d[1:]  # Drop first flag byte
             elif frame_type == 0xb2:
                 d = list(response_data)
                 if len(d) == 2:
@@ -244,7 +255,7 @@ class LinkerHandL10Can:
                 elif len(d) == 7:
                     index = self.matrix_map.get(d[0])
                     if index is not None:
-                        self.index_matrix[index] = d[1:]  # Remove the first flag bit
+                        self.index_matrix[index] = d[1:]  # Drop first flag byte
             elif frame_type == 0xb3:
                 d = list(response_data)
                 if len(d) == 2:
@@ -252,7 +263,7 @@ class LinkerHandL10Can:
                 elif len(d) == 7:
                     index = self.matrix_map.get(d[0])
                     if index is not None:
-                        self.middle_matrix[index] = d[1:]  # Remove the first flag bit
+                        self.middle_matrix[index] = d[1:]  # Drop first flag byte
             elif frame_type == 0xb4:
                 d = list(response_data)
                 if len(d) == 2:
@@ -260,7 +271,7 @@ class LinkerHandL10Can:
                 elif len(d) == 7:
                     index = self.matrix_map.get(d[0])
                     if index is not None:
-                        self.ring_matrix[index] = d[1:]  # Remove the first flag bit
+                        self.ring_matrix[index] = d[1:]  # Drop first flag byte
             elif frame_type == 0xb5:
                 d = list(response_data)
                 if len(d) == 2:
@@ -268,13 +279,14 @@ class LinkerHandL10Can:
                 elif len(d) == 7:
                     index = self.matrix_map.get(d[0])
                     if index is not None:
-                        self.little_matrix[index] = d[1:]  # Remove the first flag bit
+                        self.little_matrix[index] = d[1:]  # Drop first flag byte
             elif frame_type == 0x64:
                 self.version =  list(response_data)
             elif frame_type == 0xC2: # version number
                 self.version = list(response_data)
 
     def get_version(self):
+        """Query firmware/hardware version."""
         self.send_frame(0x64, [], sleep=0.1)
         time.sleep(0.1)
         if self.version is None:
@@ -283,7 +295,7 @@ class LinkerHandL10Can:
         return self.version
 
     def set_torque(self,torque=[]):
-        '''Set maximum torque'''
+        """Set maximum torque."""
         if len(torque) == 5:
             self.send_frame(0x02, torque)
             time.sleep(0.002)
@@ -295,9 +307,9 @@ class LinkerHandL10Can:
 
     
     def get_current_status(self):
-        '''Get current joint status'''
+        """Get current joint status."""
         if self.is_cmd == False:
-            #if self.version != None and self.version[4] > 35:
+            # if self.version != None and self.version[4] > 35:
             self.send_frame(0x01,[],sleep=0.003)
             self.send_frame(0x04,[],sleep=0.003)
             state = self.x01 + self.x04
@@ -307,25 +319,27 @@ class LinkerHandL10Can:
             return state
         
     def get_current_pub_status(self):
+        """Get current joint status without querying the device."""
         state = self.x01 + self.x04
         return state
         
     def get_speed(self):
-        '''Get current speed'''
+        """Get current speed."""
         self.send_frame(0x05,[],sleep=0.003)
         self.send_frame(0x06,[],sleep=0.003)
         return self.x05 + self.x06
         
     def get_force(self):
-        '''Get pressure sensor data'''
+        """Get pressure/tactile sensor data."""
         return [self.normal_force,self.tangential_force , self.tangential_force_dir , self.approach_inc]
+
     def get_temperature(self):
-        '''Get current motor temperature'''
+        """Get current motor temperature."""
         self.get_motor_temperature()
         return self.x33+self.x34
 
     def get_touch_type(self):
-        '''Get touch type'''
+        """Get tactile sensor type."""
         self.send_frame(0xb0,[],sleep=0.03)
         self.send_frame(0xb1,[],sleep=0.03)
         t = []
@@ -343,15 +357,16 @@ class LinkerHandL10Can:
                 return 1
     
     def get_touch(self):
-        '''Get touch data'''
+        """Get tactile touch (per-finger 1D) data."""
         self.send_frame(0xb1,[],sleep=0.03)
         self.send_frame(0xb2,[],sleep=0.03)
         self.send_frame(0xb3,[],sleep=0.03)
         self.send_frame(0xb4,[],sleep=0.03)
         self.send_frame(0xb5,[],sleep=0.03)
-        return [self.xb1[1],self.xb2[1],self.xb3[1],self.xb4[1],self.xb5[1],0] # The last digit is palm, currently not available
+        return [self.xb1[1],self.xb2[1],self.xb3[1],self.xb4[1],self.xb5[1],0] # Last value is palm; currently not available
 
     def get_matrix_touch(self):
+        """Get tactile matrix data for all five fingers (slower sampling)."""
         self.send_frame(0xb1,[0xc6],sleep=0.06)
         self.send_frame(0xb2,[0xc6],sleep=0.06)
         self.send_frame(0xb3,[0xc6],sleep=0.06)
@@ -360,6 +375,7 @@ class LinkerHandL10Can:
         return self.thumb_matrix , self.index_matrix , self.middle_matrix , self.ring_matrix , self.little_matrix
     
     def get_matrix_touch_v2(self):
+        """Get tactile matrix data for all five fingers (faster sampling)."""
         self.send_frame(0xb1,[0xc6],sleep=0.005)
         self.send_frame(0xb2,[0xc6],sleep=0.005)
         self.send_frame(0xb3,[0xc6],sleep=0.005)
@@ -368,29 +384,34 @@ class LinkerHandL10Can:
         return self.thumb_matrix , self.index_matrix , self.middle_matrix , self.ring_matrix , self.little_matrix
 
     def get_thumb_matrix_touch(self):
+        """Get thumb tactile matrix."""
         self.send_frame(0xb1,[0xc6],sleep=0.005)
         return self.thumb_matrix
     
     def get_index_matrix_touch(self):
+        """Get index tactile matrix."""
         self.send_frame(0xb2,[0xc6],sleep=0.005)
         return self.index_matrix
     
     def get_middle_matrix_touch(self):
+        """Get middle tactile matrix."""
         self.send_frame(0xb3,[0xc6],sleep=0.005)
         return self.middle_matrix
     
     def get_ring_matrix_touch(self):
+        """Get ring tactile matrix."""
         self.send_frame(0xb4,[0xc6],sleep=0.005)
         return self.ring_matrix
     
     def get_little_matrix_touch(self):
+        """Get pinky tactile matrix."""
         self.send_frame(0xb5,[0xc6],sleep=0.005)
         return self.little_matrix
 
 
     def get_torque(self):
-        '''Get current motor torque'''
-        if self.version != None and self.version[4]< 36:
+        """Get current motor torque."""
+        if self.version != None and self.version[4] < 36:
             return [-1] * 5
         else:
             self.send_frame(0x02, [])
@@ -400,30 +421,28 @@ class LinkerHandL10Can:
             return self.x02+self.x03
     
     def get_fault(self):
-        '''Get motor fault'''
+        """Get motor fault codes."""
         self.get_motor_fault_code()
         return self.x35+self.x36
     
     def get_current(self):
-        '''Get current'''
-        #return [-1] * 5
+        """Get current (alias behavior matches torque on device)."""
         self.send_frame(0x02, [])
         time.sleep(0.002)
         self.send_frame(0x03,[])
         return self.x02+self.x03
 
     def show_fun_table(self):
-        # if len(data) != 8 or data[0] != 0x64:
-        #     raise ValueError("数据格式不正确")
+        """Pretty-print device capabilities parsed from version bytes."""
         data = self.version
         result = {
-            "自由度": data[0],
-            "机械版本": data[1],
-            "版本序号": data[2],
-            "手方向": chr(data[3]),  # ASCII 转字符
-            "软件版本": f"V{data[4] >> 4}.{data[4] & 0x0F}",
-            "硬件版本": f"V{data[5] >> 4}.{data[5] & 0x0F}",
-            "修订标志": data[6],
+            "DOF": data[0],
+            "Mechanical Version": data[1],
+            "Version Index": data[2],
+            "Hand Orientation": chr(data[3]),  # ASCII to char
+            "Software Version": f"V{data[4] >> 4}.{data[4] & 0x0F}",
+            "Hardware Version": f"V{data[5] >> 4}.{data[5] & 0x0F}",
+            "Revision Flag": data[6],
             "set_position": "Y",
             "set_torque": "Y",
             "set_speed": "Y",
@@ -436,20 +455,8 @@ class LinkerHandL10Can:
             "get_fault": "Y",
             "get_current": "current == torque"
         }
-        
-        #return [data[0],data[1],data[2],chr(data[3]),f"V{data[4] >> 4}.{data[4] & 0x0F}",f"V{data[5] >> 4}.{data[5] & 0x0F}",data[6]]
         table = [[k, v] for k, v in result.items()]
         print(tabulate(table, tablefmt="grid"), flush=True)
-
-
-    # # 示例数据
-    # data = [0x64, 0x15, 0x03, 0x0A, 0x4C, 0x11, 0x22, 0x01]
-    # parsed = parse_version_data(data)
-
-    # # 打印结果
-    # for k, v in parsed.items():
-    #     print(f"{k}: {v}")
-
 
     def close_can_interface(self):
         """Stop the CAN communication."""

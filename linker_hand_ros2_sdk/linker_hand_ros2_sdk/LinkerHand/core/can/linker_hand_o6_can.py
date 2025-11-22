@@ -13,12 +13,12 @@ class LinkerHandO6Can:
         self.baudrate = baudrate
         self.open_can = OpenCan(load_yaml=yaml)
 
-        self.x01 = [0] * 6 # 关节位置
-        self.x02 = [-1] * 6 # 转矩限制
-        self.x05 = [0] * 6 # 速度
-        self.x07 = [-1] * 6 # 加速度
-        self.x33 = [0] * 6 # 温度
-        self.x35 = [0] * 6 # 关节错误码
+        self.x01 = [0] * 6 # Joint positions
+        self.x02 = [-1] * 6 # Torque limits
+        self.x05 = [0] * 6 # Speed
+        self.x07 = [-1] * 6 # Acceleration
+        self.x33 = [0] * 6 # Temperature
+        self.x35 = [0] * 6 # Joint fault codes
         self.xb0,self.xb1,self.xb2,self.xb3,self.xb4,self.xb5 = [-1] * 5,[-1] * 5,[-1] * 5,[-1] * 5,[-1] * 5,[-1] * 5
         self.thumb_matrix = np.full((12, 6), -1)
         self.index_matrix = np.full((12, 6), -1)

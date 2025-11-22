@@ -4,9 +4,10 @@ from pymodbus.client import ModbusSerialClient
 from typing import List
 import numpy as np
 _INTERVAL = 0.008  # 8 ms
+
 class LinkerHandL10RS485:
 
-    # 10 电机顺序固定
+    # Fixed order of 10 motors
     KEYS = ["thumb_cmc_pitch", "thumb_cmc_roll", "index_mcp_pitch", "middle_mcp_pitch",
             "ring_mcp_pitch", "pinky_mcp_pitch", "index_mcp_roll", "ring_mcp_roll",
             "pinky_mcp_roll", "thumb_cmc_yaw"]
@@ -16,12 +17,12 @@ class LinkerHandL10RS485:
         self.cli = ModbusSerialClient(port=modbus_port, baudrate=baudrate,
                                       bytesize=8, parity="N", stopbits=1)
         if not self.cli.connect():
-            raise ConnectionError("RS485 connect fail")
+            raise ConnectionError("RS485 connection failed")
 
     # --------------------------------------------------
-    # 批量接口
+    # Batch interfaces
     # --------------------------------------------------
-    # ------------------ 读取 ------------------
+    # ------------------ Reads ------------------
     def read_angles(self) -> List[int]:
         time.sleep(_INTERVAL)
         return self.cli.read_input_registers(0, count=10, device_id=self.slave).registers
@@ -30,27 +31,27 @@ class LinkerHandL10RS485:
         time.sleep(_INTERVAL)
         return self.cli.read_input_registers(10, count=10, device_id=self.slave).registers
 
-    # ---------- 速度 ----------
+    # ---------- Speed ----------
     def read_speeds(self) -> List[int]:
-        """读当前速度（输入 20-29）"""
+        """Read current speeds (input registers 20–29)"""
         time.sleep(_INTERVAL)
         return self.cli.read_input_registers(20, count=10, device_id=self.slave).registers
 
-    # ---------- 温度 ----------
+    # ---------- Temperature ----------
     def read_temperatures(self) -> List[int]:
-        """读当前温度（输入 40-49，单位 ℃）"""
+        """Read current temperatures (input registers 40–49, in °C)"""
         time.sleep(_INTERVAL)
         return self.cli.read_input_registers(40, count=10, device_id=self.slave).registers
 
-    # ---------- 错误码 ----------
+    # ---------- Error codes ----------
     def read_error_codes(self) -> List[int]:
-        """读错误码（输入 50-59，0=正常）"""
+        """Read error codes (input registers 50–59, 0 = OK)"""
         time.sleep(_INTERVAL)
         return self.cli.read_input_registers(50, count=10, device_id=self.slave).registers
     
-    # ---------- 版本信息 ----------
+    # ---------- Version info ----------
     def read_versions(self) -> dict:
-        """一次性读取所有版本信息（158-163）"""
+        """Read all version info at once (158–163)"""
         time.sleep(_INTERVAL)
         regs = self.cli.read_input_registers(158, count=6, device_id=self.slave).registers
         keys = ["hand_freedom", "hand_version", "hand_number",
@@ -58,7 +59,7 @@ class LinkerHandL10RS485:
         return regs
 
     # --------------------------------------------------
-    # 5 个压力传感器单独接口
+    # Individual interfaces for 5 pressure sensors
     # --------------------------------------------------
     def read_pressure_thumb(self) -> np.ndarray:
         return np.array(self._pressure(1), dtype=np.uint8)
@@ -76,44 +77,44 @@ class LinkerHandL10RS485:
         return np.array(self._pressure(5), dtype=np.uint8)
 
     def _pressure(self, finger: int) -> List[int]:
-        """内部：选手指 → 读 62-157 共 96 字节"""
+        """Internal: select finger → read 62–157 (96 bytes)"""
         time.sleep(_INTERVAL)
         self.cli.write_register(60, finger, device_id=self.slave)
         time.sleep(_INTERVAL)
         return np.array(self.cli.read_input_registers(62, count=96, device_id=self.slave).registers)
     
 
-    # ------------------ 写入 ------------------
+    # ------------------ Writes ------------------
     def write_angles(self, vals: List[int]):
-        """设置 10 个电机角度（保持 0-9）"""
+        """Set 10 motor angles (holding registers 0–9)"""
         vals = [int(x) for x in vals]
         time.sleep(_INTERVAL)
         self.cli.write_registers(0, values=vals, device_id=self.slave)
 
     
     def write_speeds(self, vals: List[int]) -> None:
-        """设置 10 个电机速度（保持 20-29）"""
+        """Set 10 motor speeds (holding registers 20–29)"""
         vals = [int(x) for x in vals]
-        assert self.is_valid_10xuint8(vals), "需要 10 个 0-255 整数"
+        assert self.is_valid_10xuint8(vals), "Expected 10 integers in range 0–255"
         time.sleep(_INTERVAL)
         self.cli.write_registers(20, values=vals, device_id=self.slave)
 
     def write_torques(self, vals: List[int]) -> None:
-        """设置 10 个电机转矩（保持 10-19）"""
+        """Set 10 motor torques (holding registers 10–19)"""
         vals = [int(x) for x in vals]
-        assert self.is_valid_10xuint8(vals), "需要 10 个 0-255 整数"
+        assert self.is_valid_10xuint8(vals), "Expected 10 integers in range 0–255"
         time.sleep(_INTERVAL)
         self.cli.write_registers(10, values=vals, device_id=self.slave)
 
     # --------------------------------------------------
-    # 上下文
+    # Context management
     # --------------------------------------------------
     def close(self): self.cli.close()
     def __enter__(self): return self
     def __exit__(self, *_): self.close()
 
     # --------------------------------------------------
-    # API固定接口函数
+    # Fixed API functions
     # --------------------------------------------------
     def is_valid_10xuint8(self, lst) -> bool:
         if len(lst) < 10:
@@ -132,29 +133,30 @@ class LinkerHandL10RS485:
             raise ValueError("invalid angles")
 
     def set_speed(self, speed=[200] * 10):
-        """设置速度 params: list len=10"""
+        """Set speeds — params: list of length 10"""
         self.write_speeds(speed)
             
     
     def set_torque(self, torque=[200] * 10):
-        """设置扭矩 params: list len=10"""
+        """Set torques — params: list of length 10"""
         self.write_torques(torque)
 
     def set_current(self, current=[200] * 10):
-        """设置电流 params: list len=10"""
-        print("当前L10不支持设置电流", flush=True)
+        """Set current — params: list of length 10"""
+        print("Setting current is not supported on L10", flush=True)
         pass
 
     def get_version(self) -> list:
-        """获取当前固件版本号"""
+        """Get current firmware version"""
         return self.read_versions()
+
     def get_current(self):
-        """获取电流"""
-        print("当前L10不支持获取电流", flush=True)
+        """Get current"""
+        print("Getting current is not supported on L10", flush=True)
         pass
 
     def get_state(self) -> list:
-        """获取手指电机状态"""
+        """Get finger motor states"""
         return self.read_angles()
     
     def get_state_for_pub(self) -> list:
@@ -164,26 +166,26 @@ class LinkerHandL10RS485:
         return self.get_state()
     
     def get_speed(self) -> list:
-        """获取当前速度"""
+        """Get current speeds"""
         return self.read_speeds()
     
     def get_joint_speed(self) -> list:
         return self.get_speed()
     
     def get_touch_type(self) -> list:
-        """获取压感类型"""
+        """Get pressure-sensing type"""
         return 2
     
     def get_normal_force(self) -> list:
-        """获取压感数据：点式"""
+        """Get pressure data: point type"""
         return [-1] * 5
     
     def get_tangential_force(self) -> list:
-        """获取压感数据：点式"""
+        """Get pressure data: point type"""
         return [-1] * 5
     
     def get_approach_inc(self) -> list:
-        """获取压感数据：点式"""
+        """Get pressure data: point type"""
         return [-1] * 5
     
     def get_touch(self) -> list:
@@ -205,23 +207,23 @@ class LinkerHandL10RS485:
         return self._pressure(finger=5)
         
     def get_matrix_touch(self) -> list:
-        """获取压感数据：矩阵式"""
+        """Get pressure data: matrix type"""
         return [self._pressure(finger=1), self._pressure(finger=2), self._pressure(finger=3), self._pressure(finger=4), self._pressure(finger=5)]
     
     def get_matrix_touch_v2(self) -> list:
-        """获取压感数据：矩阵式"""
+        """Get pressure data: matrix type"""
         return self.get_matrix_touch()
     
     def get_torque(self) -> list:
-        """获取当前扭矩"""
+        """Get current torques"""
         return self.read_torques()
     
     def get_temperature(self) -> list:
-        """获取当前电机温度"""
+        """Get current motor temperatures"""
         return self.read_temperatures()
     
     def get_fault(self) -> list:
-        """获取当前电机故障码"""
+        """Get current motor error codes"""
         return self.read_error_codes()
 
 
@@ -231,16 +233,16 @@ if __name__ == "__main__":
         angles = hand.read_angles()
         print(dict(zip(LinkerHandL10RS485.KEYS, angles)))
 
-        # 批量设角度
+        # Batch set angles
         hand.write_angles([250]*10)
 
-        # 读拇指压力
+        # Read thumb pressure
         print("thumb pressure:", hand.read_pressure_thumb())
-        print("角度 :", dict(zip(LinkerHandL10RS485.KEYS, hand.read_angles())))
-        print("电流 :", dict(zip(LinkerHandL10RS485.KEYS, hand.read_torques())))
-        print("速度 :", dict(zip(LinkerHandL10RS485.KEYS, hand.read_speeds())))
-        print("温度 :", dict(zip(LinkerHandL10RS485.KEYS, hand.read_temperatures())))
-        print("错误码:", dict(zip(LinkerHandL10RS485.KEYS, hand.read_error_codes())))
+        print("Angles :", dict(zip(LinkerHandL10RS485.KEYS, hand.read_angles())))
+        print("Current :", dict(zip(LinkerHandL10RS485.KEYS, hand.read_torques())))
+        print("Speed :", dict(zip(LinkerHandL10RS485.KEYS, hand.read_speeds())))
+        print("Temperature :", dict(zip(LinkerHandL10RS485.KEYS, hand.read_temperatures())))
+        print("Error codes:", dict(zip(LinkerHandL10RS485.KEYS, hand.read_error_codes())))
         print("+=" * 30)
         ver = hand.get_version()
         print(list(ver))

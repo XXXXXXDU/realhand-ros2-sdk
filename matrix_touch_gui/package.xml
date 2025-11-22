@@ -4,7 +4,7 @@
   <name>matrix_touch_gui</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
-  <maintainer email="hejianxin79@hotmail.com">linkerhand</maintainer>
+  <maintainer email="TODO@gmail.com">linkerhand</maintainer>
   <license>Apache-2.0</license>
 
   <depend>rclpy</depend>

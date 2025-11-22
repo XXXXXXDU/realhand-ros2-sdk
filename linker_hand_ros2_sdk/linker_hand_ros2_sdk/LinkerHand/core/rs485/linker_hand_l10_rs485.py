@@ -20,18 +20,18 @@ class LinkerHandL10RS485:
             bytesize=8,
             parity="N",
             stopbits=1,
-            timeout=0.05,          # 50 ms 超时
-            retries=3,             # 重试次数
+            timeout=0.05,          # 50 ms timeout
+            retries=3,             # retry count
             retry_on_empty=True,
             handle_local_echo=False
         )
-        # 在 pymodbus 3.5.1 中，连接需要显式调用 connect()
+        # In pymodbus 3.5.1, connect() must be called explicitly
         self.connected = self.cli.connect()
         if not self.connected:
             raise ConnectionError(f"RS485 connect fail to {modbus_port}")
 
     # --------------------------------------------------
-    # 批量读取接口
+    # Batch read interfaces
     # --------------------------------------------------
     def read_angles(self) -> List[int]:
         time.sleep(_INTERVAL)
@@ -75,11 +75,11 @@ class LinkerHandL10RS485:
             raise RuntimeError(f"read_versions failed: {rsp}")
         keys = ["hand_freedom", "hand_version", "hand_number",
                 "hand_direction", "software_version", "hardware_version"]
-        #return dict(zip(keys, rsp.registers))
+        # return dict(zip(keys, rsp.registers))
         return rsp.registers
 
     # --------------------------------------------------
-    # 5 个压力传感器
+    # Five pressure sensors
     # --------------------------------------------------
     def read_pressure_thumb(self) -> np.ndarray:
         return np.array(self._pressure(1), dtype=np.uint8)
@@ -98,25 +98,25 @@ class LinkerHandL10RS485:
 
     def _pressure(self, finger: int) -> List[int]:
         time.sleep(_INTERVAL)
-        # 先选择手指
+        # Select finger first
         wrsp = self.cli.write_register(address=60, value=finger, slave=self.slave)
         if wrsp.isError():
             raise RuntimeError(f"write finger select {finger} failed: {wrsp}")
         
         time.sleep(_INTERVAL)
-        # 读取压力传感器数据 (96个寄存器)
+        # Read pressure sensor data (96 registers)
         rrsp = self.cli.read_input_registers(address=62, count=96, slave=self.slave)
         if rrsp.isError():
             raise RuntimeError(f"read pressure finger={finger} failed: {rrsp}")
         return np.array(rrsp.registers, dtype=np.uint8)
 
     # --------------------------------------------------
-    # 批量写入接口
+    # Batch write interfaces
     # --------------------------------------------------
     def write_angles(self, vals: List[int]):
         vals = [int(x) for x in vals]
         if not self.is_valid_10xuint8(vals):
-            raise ValueError("需要 10 个 0-255 整数")
+            raise ValueError("Need 10 integers in the range 0–255")
         
         time.sleep(_INTERVAL)
         rsp = self.cli.write_registers(address=0, values=vals, slave=self.slave)
@@ -126,7 +126,7 @@ class LinkerHandL10RS485:
     def write_speeds(self, vals: List[int]):
         vals = [int(x) for x in vals]
         if not self.is_valid_10xuint8(vals):
-            raise ValueError("需要 10 个 0-255 整数")
+            raise ValueError("Need 10 integers in the range 0–255")
             
         time.sleep(_INTERVAL)
         rsp = self.cli.write_registers(address=20, values=vals, slave=self.slave)
@@ -136,7 +136,7 @@ class LinkerHandL10RS485:
     def write_torques(self, vals: List[int]):
         vals = [int(x) for x in vals]
         if not self.is_valid_10xuint8(vals):
-            raise ValueError("需要 10 个 0-255 整数")
+            raise ValueError("Need 10 integers in the range 0–255")
             
         time.sleep(_INTERVAL)
         rsp = self.cli.write_registers(address=10, values=vals, slave=self.slave)
@@ -144,7 +144,7 @@ class LinkerHandL10RS485:
             raise RuntimeError(f"write_torques failed: {rsp}")
 
     # --------------------------------------------------
-    # 上下文管理
+    # Context management
     # --------------------------------------------------
     def close(self):
         if self.connected:
@@ -158,7 +158,7 @@ class LinkerHandL10RS485:
         self.close()
 
     # --------------------------------------------------
-    # 工具函数
+    # Utilities
     # --------------------------------------------------
     def is_valid_10xuint8(self, lst) -> bool:
         if len(lst) != 10:
@@ -166,7 +166,7 @@ class LinkerHandL10RS485:
         return all(isinstance(x, int) and 0 <= x <= 255 for x in lst)
 
     # --------------------------------------------------
-    # 固定 API 接口
+    # Fixed API interfaces
     # --------------------------------------------------
     def set_joint_positions(self, joint_angles=None):
         joint_angles = joint_angles or [0] * 10
@@ -181,13 +181,13 @@ class LinkerHandL10RS485:
         self.write_torques(torque)
 
     def set_current(self, current=None):
-        print("当前L10不支持设置电流", flush=True)
+        print("Setting current is not supported on L10", flush=True)
 
     def get_version(self) -> dict:
         return self.read_versions()
 
     def get_current(self):
-        print("当前L10不支持获取电流", flush=True)
+        print("Getting current is not supported on L10", flush=True)
 
     def get_state(self) -> List[int]:
         return self.read_angles()
@@ -235,7 +235,7 @@ class LinkerHandL10RS485:
         return self._pressure(5)
 
     def get_matrix_touch(self) -> List[List[int]]:
-        return self.get_thumb_matrix_touch(),self.get_index_matrix_touch(), self.get_middle_matrix_touch(), self.get_ring_matrix_touch(), self.get_little_matrix_touch()
+        return self.get_thumb_matrix_touch(), self.get_index_matrix_touch(), self.get_middle_matrix_touch(), self.get_ring_matrix_touch(), self.get_little_matrix_touch()
 
     def get_matrix_touch_v2(self) -> List[List[int]]:
         return self.get_matrix_touch()
@@ -254,24 +254,24 @@ class LinkerHandL10RS485:
 if __name__ == "__main__":
     try:
         with LinkerHandL10RS485(hand_id=0x27, modbus_port="/dev/ttyUSB0", baudrate=115200) as hand:
-            print("连接成功!")
+            print("Connected successfully!")
             
-            # 测试读取角度
+            # Test reading angles
             angles = hand.read_angles()
-            print("角度:", dict(zip(LinkerHandL10RS485.KEYS, angles)))
+            print("Angles:", dict(zip(LinkerHandL10RS485.KEYS, angles)))
             
-            # 测试读取版本信息
+            # Test reading version info
             ver = hand.get_version()
-            print("版本信息:", ver)
+            print("Version info:", ver)
             
-            # 测试压力传感器
-            print("拇指压力传感器数据长度:", len(hand.read_pressure_thumb()))
+            # Test pressure sensor
+            print("Thumb pressure data length:", len(hand.read_pressure_thumb()))
             
-            # 测试其他读取功能
-            print("电流:", hand.read_torques())
-            print("速度:", hand.read_speeds())
-            print("温度:", hand.read_temperatures())
-            print("错误码:", hand.read_error_codes())
+            # Test other reads
+            print("Torque:", hand.read_torques())
+            print("Speed:", hand.read_speeds())
+            print("Temperature:", hand.read_temperatures())
+            print("Error codes:", hand.read_error_codes())
             
     except Exception as e:
-        print(f"错误: {e}")
+        print(f"Error: {e}")

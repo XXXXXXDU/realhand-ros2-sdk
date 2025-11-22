@@ -4,7 +4,7 @@
   <name>setting_info</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
-  <maintainer email="INSERT MAINTAINER EMAIL">linkerhand</maintainer>
+  <maintainer email="TODO@gmail.com">linkerhand</maintainer>
   <license>TODO: License declaration</license>
 
   <depend>rclpy</depend>
