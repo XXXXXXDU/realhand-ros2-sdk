@@ -1,5 +1,3 @@
-# This project has been moved to the new address, please visit [https://github.com/linker-bot/linkerhand-ros2-sdk](https://github.com/linker-bot/linkerhand-ros2-sdk)
-
 
 ------
 
