@@ -4,7 +4,7 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     return LaunchDescription([
-        # Suppose you have a node named "example_node" located in the linker_hand_ros2_sdk package
+        # Suppose you have a node named "example_node" located in the real_hand_ros2_sdk package
         # and the node’s executable has already been built—typically under the src directory (confirm actual location)
         Node(
             package='matrix_touch_gui',
