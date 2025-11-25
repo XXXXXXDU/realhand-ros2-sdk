@@ -18,7 +18,7 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='linkerhand',
+    maintainer='realhand',
     maintainer_email='hejianxin79@hotmail.com',
     description='TODO: Package description',
     license='Apache-2.0',

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 '''
 Build: colcon build --symlink-install
-Launch command: ros2 run linker_hand_ros2_sdk linker_hand_sdk
+Launch command: ros2 run real_hand_ros2_sdk real_hand_sdk
 '''
 import rclpy,math,sys
 from rclpy.node import Node

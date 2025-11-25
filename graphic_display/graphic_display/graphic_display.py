@@ -11,7 +11,7 @@ import json
 import sys
 from typing import Dict, List
 
-from linker_hand_ros2_sdk.LinkerHand.utils.init_linker_hand import InitLinkerHand
+from real_hand_ros2_sdk.RealHand.utils.init_real_hand import InitRealHand
 
 class ForceGroupWindow(QtWidgets.QMainWindow):
     """Visualization window for dedicated force sensor group"""
@@ -85,7 +85,7 @@ class HandMonitor(Node):
         self.force_windows = {}  # Storage Force Group Window {group_id: window}
         self.temp_window = None  # temperature window
         self.torque_window = None  # Torque window
-        self.hand_joint, self.hand_type = InitLinkerHand().current_hand()
+        self.hand_joint, self.hand_type = InitRealHand().current_hand()
         if self.hand_type == "left":
             self.topic = "/cb_left_hand_info"
         else:
