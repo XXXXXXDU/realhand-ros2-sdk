@@ -1,20 +1,20 @@
 
 ------
 
-# LinkerHand Dexterous Hand ROS2 SDK  
+# RealHand Dexterous Hand ROS2 SDK  
 
 ## Overview  
-The LinkerHand Dexterous Hand ROS SDK is developed by LinkerHand (Beijing) Technology Co., Ltd. It provides driver software and functional example source code for LinkerHand dexterous hands such as the L7, O7, L10, and O10 models, supporting both physical devices and simulators.  
-The LinkerHand ROS2 SDK currently supports Ubuntu 22.04, ROS Humble, and Python 3.10 or higher environments.  
+The RealHand Dexterous Hand ROS SDK is developed by RealHand Technology Co., Ltd. (United States of America). It provides driver software and functional example source code for RealHand dexterous hands such as the L7, O7, L10, and O10 models, supporting both physical devices and simulators.  
+The RealHand ROS2 SDK currently supports Ubuntu 22.04, ROS Humble, and Python 3.10 or higher environments.  
 
 ## Installation  
-&ensp;&ensp;Ensure the system environment meets the requirements: Ubuntu 20.04, ROS 2 Foxy, and Python 3.8.20 or higher.  
+&ensp;&ensp; Ensure the system environment meets the requirements: Ubuntu 20.04, ROS 2 Foxy, and Python 3.8.20 or higher.  
 - **Download**  
 
 ```bash  
   $ mkdir -p linker_hand_ros2_sdk/src  
   $ cd linker_hand_ros2_sdk/src  
-  $ https://github.com/linker-bot/linkerhand-ros2-sdk.git
+  $ https://github.com/linker-bot/RealHand-ros2-sdk.git
 ```  
 
 - **Build**  
@@ -26,13 +26,13 @@ The LinkerHand ROS2 SDK currently supports Ubuntu 22.04, ROS Humble, and Python 
 ```  
 
 ## Usage for Ubuntu  
-&ensp;&ensp; __Before use, modify the [setting.yaml](https://github.com/linkerbotai/linker_hand_ros2_sdk/blob/main/linker_hand_ros2_sdk/linker_hand_ros2_sdk/LinkerHand/config/setting.yaml) configuration file according to your needs.__  
+&ensp;&ensp; __Before use, modify the [setting.yaml](https://github.com/linkerbotai/linker_hand_ros2_sdk/blob/main/linker_hand_ros2_sdk/linker_hand_ros2_sdk/RealHand/config/setting.yaml) configuration file according to your needs.__  
 - Modify the password in `setting.yaml`. The default password is `"12345678"`, which corresponds to the Ubuntu system password for automatically enabling the CAN port in the SDK.  
 
 &ensp;&ensp; __Before use, configure the [linker_hand.launch.py](https://github.com/linkerbotai/linker_hand_ros2_sdk/blob/main/linker_hand_ros2_sdk/launch/linker_hand.launch.py) file according to the actual dexterous hand parameters.__  
 
 - **Launch the SDK**  
-  Connect the LinkerHand dexterous hand's USB-to-CAN device to the Ubuntu machine (supported models: L7, L10, L20, L21, L25).  
+  Connect the RealHand dexterous hand's USB-to-CAN device to the Ubuntu machine (supported models: L7, L10, L20, L21, L25).  
 
 ```bash  
   # Enable the CAN port  
@@ -51,7 +51,7 @@ The LinkerHand ROS2 SDK currently supports Ubuntu 22.04, ROS Humble, and Python 
 &ensp;&ensp; __Before use, configure the [linker_hand.launch.py](https://github.com/linkerbotai/linker_hand_ros2_sdk/blob/main/linker_hand_ros2_sdk/launch/linker_hand.launch.py) file according to the actual dexterous hand parameters.__  
 
 - **Launch the SDK**  
-  Connect the LinkerHand dexterous hand's USB-to-CAN device to the Windows machine (supported models: L7, L10, L20, L21, L25).  
+  Connect the RealHand dexterous hand's USB-to-CAN device to the Windows machine (supported models: L7, L10, L20, L21, L25).  
   Note: Ensure the USB-to-CAN driver is installed before use.  
 
 ```bash  
@@ -113,7 +113,7 @@ $ ros2 topic echo /cb_left_hand_control_cmd
 - > ### release_1.0.2  
   - 1. Added support for L10/O10 dexterous hands.  
   - 2. Added GUI control for L10/O10 dexterous hands.  
-  - 3. Added support for pressure sensor visualization in LinkerHand.  
+  - 3. Added support for pressure sensor visualization in RealHand.  
 
 - > ### release_1.0.1  
   - 1. Added support for L7/O7 dexterous hands.  
@@ -121,13 +121,13 @@ $ ros2 topic echo /cb_left_hand_control_cmd
 
 ## [Examples](examples/)  
 
-&ensp;&ensp; __Before use, modify the [setting.yaml](https://github.com/linkerbotai/linker_hand_ros2_sdk/blob/main/linker_hand_ros2_sdk/linker_hand_ros2_sdk/LinkerHand/config/setting.yaml) configuration file according to your needs.__  
+&ensp;&ensp; __Before use, modify the [setting.yaml](https://github.com/linkerbotai/linker_hand_ros2_sdk/blob/main/linker_hand_ros2_sdk/linker_hand_ros2_sdk/RealHand/config/setting.yaml) configuration file according to your needs.__  
 
 ## General  
 - [gui_control (Graphical Interface Control)](图形界面控制)  
-The graphical interface allows controlling individual joints of LinkerHand dexterous hands (L10, L20) via sliders. It also supports saving the current joint states by recording slider values and replaying actions using functional buttons.  
+The graphical interface allows controlling individual joints of RealHand dexterous hands (L10, L20) via sliders. It also supports saving the current joint states by recording slider values and replaying actions using functional buttons.  
 
-To control the LinkerHand dexterous hand via `gui_control`:  
+To control the RealHand dexterous hand via `gui_control`:  
 The GUI requires the `linker_hand_sdk_ros` to be running, as it communicates with the hand via ROS topics.  
 
 &ensp;&ensp; __Before use, configure the [gui_control.launch.py](https://github.com/linkerbotai/linker_hand_ros2_sdk/blob/main/gui_control/launch/gui_control.launch.py) file according to the actual dexterous hand parameters.__  
