@@ -134,13 +134,13 @@ class RealHandL24Can:
 
         # Initialize parameters based on can_id
         if can_id == 0x28:  # Left hand
-            self.hand_exists = config['LINKER_HAND']['LEFT_HAND']['EXISTS']
-            self.hand_joint = config['LINKER_HAND']['LEFT_HAND']['JOINT']
-            self.hand_names = config['LINKER_HAND']['LEFT_HAND']['NAME']
+            self.hand_exists = config['REAL_HAND']['LEFT_HAND']['EXISTS']
+            self.hand_joint = config['REAL_HAND']['LEFT_HAND']['JOINT']
+            self.hand_names = config['REAL_HAND']['LEFT_HAND']['NAME']
         elif can_id == 0x27:  # Right hand
-            self.hand_exists = config['LINKER_HAND']['RIGHT_HAND']['EXISTS']
-            self.hand_joint = config['LINKER_HAND']['RIGHT_HAND']['JOINT']
-            self.hand_names = config['LINKER_HAND']['RIGHT_HAND']['NAME']
+            self.hand_exists = config['REAL_HAND']['RIGHT_HAND']['EXISTS']
+            self.hand_joint = config['REAL_HAND']['RIGHT_HAND']['JOINT']
+            self.hand_names = config['REAL_HAND']['RIGHT_HAND']['NAME']
 
         # Start receive thread
         self.receive_thread = threading.Thread(target=self.receive_response)

@@ -37,11 +37,11 @@ class InitRealHand():
         self.right_hand_pose = None
         self.right_hand_torque = [200, 200, 200, 200, 200]
         self.right_hand_speed = [80, 200, 200, 200, 200]
-        if self.setting['LINKER_HAND']['LEFT_HAND']['EXISTS'] == True:
+        if self.setting['REAL_HAND']['LEFT_HAND']['EXISTS'] == True:
             self.left_hand = True
-            self.left_hand_joint = self.setting['LINKER_HAND']['LEFT_HAND']['JOINT']
+            self.left_hand_joint = self.setting['REAL_HAND']['LEFT_HAND']['JOINT']
             self.left_hand_type = "left"
-            self.left_hand_force = self.setting['LINKER_HAND']['LEFT_HAND']['TOUCH']
+            self.left_hand_force = self.setting['REAL_HAND']['LEFT_HAND']['TOUCH']
             if self.left_hand_joint == "L7":
                 # L7 data length is 7 — reinitialize here
                 self.left_hand_pose = [255, 200, 255, 255, 255, 255, 180]
@@ -56,11 +56,11 @@ class InitRealHand():
             elif self.left_hand_joint == "L25":
                 self.left_hand_pose = [75, 255, 255, 255, 255, 176, 97, 81, 114, 147, 202, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255]
         # Check whether the right hand is configured
-        if self.setting['LINKER_HAND']['RIGHT_HAND']['EXISTS'] == True:
+        if self.setting['REAL_HAND']['RIGHT_HAND']['EXISTS'] == True:
             self.right_hand = True
-            self.right_hand_joint = self.setting['LINKER_HAND']['RIGHT_HAND']['JOINT']
+            self.right_hand_joint = self.setting['REAL_HAND']['RIGHT_HAND']['JOINT']
             self.right_hand_type = "right"
-            self.right_hand_force = self.setting['LINKER_HAND']['RIGHT_HAND']['TOUCH']
+            self.right_hand_force = self.setting['REAL_HAND']['RIGHT_HAND']['TOUCH']
             if self.right_hand_joint == "L7":
                 # L7 data length is 7 — reinitialize here
                 self.right_hand_pose = [255, 200, 255, 255, 255, 255, 180]

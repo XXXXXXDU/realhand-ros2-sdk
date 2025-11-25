@@ -1,5 +1,5 @@
 VERSION: 2.2.4 # Added G20 industrial version
-LINKER_HAND:  # Hand configuration info
+REAL_HAND:  # Hand configuration info
   LEFT_HAND:
     EXISTS: False # Whether the left hand exists
     TOUCH: False # Whether there is a pressure sensor
