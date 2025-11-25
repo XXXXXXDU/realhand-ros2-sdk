@@ -1,0 +1,375 @@
+#!/usr/bin/env python3
+import os
+import time
+from pymodbus.client import ModbusSerialClient
+from typing import List, Dict
+import numpy as np
+
+_INTERVAL = 0.008  # 8 ms
+
+class RealHandL6RS485:
+    """L6 robotic hand Modbus-RTU control class"""
+    
+    # 6 joint names
+    JOINT_NAMES = ["thumb_pitch", "thumb_yaw", "index_pitch", 
+                   "middle_pitch", "ring_pitch", "little_pitch"]
+    
+    # Finger names
+    FINGER_NAMES = ["thumb", "index", "middle", "ring", "little"]
+    
+    def __init__(self, hand_id=0x27, modbus_port="/dev/ttyUSB0", baudrate=115200):
+        """
+        Initialize the L6 robotic hand
+        hand_id: right hand 0x27(39), left hand 0x28(40)
+        modbus_port: serial device path
+        baudrate: fixed at 115200
+        """
+        self.slave = hand_id
+        self.cli = ModbusSerialClient(
+            port=modbus_port, 
+            baudrate=baudrate,
+            bytesize=8, 
+            parity="N", 
+            stopbits=1,
+            timeout=1.0
+        )
+        if not self.cli.connect():
+            raise ConnectionError(f"RS485 connection failed, port: {modbus_port}")
+
+    def _read_input_registers(self, address: int, count: int) -> List[int]:
+        """Read input registers"""
+        time.sleep(_INTERVAL)
+        result = self.cli.read_input_registers(address, count=count, device_id=self.slave)
+        return result.registers if not result.isError() else []
+
+    def _write_register(self, address: int, value: int):
+        """Write a single register"""
+        time.sleep(_INTERVAL)
+        self.cli.write_register(address, value, device_id=self.slave)
+
+    def _write_registers(self, address: int, values: List[int]):
+        """Write multiple registers"""
+        time.sleep(_INTERVAL)
+        self.cli.write_registers(address, values=values, device_id=self.slave)
+
+    # --------------------------------------------------
+    # Basic read interfaces
+    # --------------------------------------------------
+    
+    def read_angles(self) -> List[int]:
+        """Read 6 joint angles (input registers 0–5)"""
+        return self._read_input_registers(0, 6)
+
+    def read_torques(self) -> List[int]:
+        """Read 6 joint torques (input registers 6–11)"""
+        return self._read_input_registers(6, 6)
+
+    def read_speeds(self) -> List[int]:
+        """Read 6 joint speeds (input registers 12–17)"""
+        return self._read_input_registers(12, 6)
+
+    def read_temperatures(self) -> List[int]:
+        """Read 6 joint temperatures (input registers 18–23)"""
+        return self._read_input_registers(18, 6)
+
+    def read_error_codes(self) -> List[int]:
+        """Read 6 joint error codes (input registers 24–29)"""
+        return self._read_input_registers(24, 6)
+
+    # --------------------------------------------------
+    # Pressure sensor interfaces (same approach as L10)
+    # --------------------------------------------------
+    
+    def _pressure(self, finger: int) -> List[int]:
+        """Internal: select finger → read pressure data"""
+        time.sleep(_INTERVAL)
+        # Select finger (holding register 36)
+        self._write_register(36, finger)
+        time.sleep(_INTERVAL)
+        # Read pressure data (input registers 52–122)
+        return np.array(self._read_input_registers(52, 71))
+
+    def read_pressure_thumb(self) -> np.ndarray:
+        """Read thumb pressure data"""
+        return np.array(self._pressure(1), dtype=np.uint8)
+
+    def read_pressure_index(self) -> np.ndarray:
+        """Read index finger pressure data"""
+        return np.array(self._pressure(2), dtype=np.uint8)
+
+    def read_pressure_middle(self) -> np.ndarray:
+        """Read middle finger pressure data"""
+        return np.array(self._pressure(3), dtype=np.uint8)
+
+    def read_pressure_ring(self) -> np.ndarray:
+        """Read ring finger pressure data"""
+        return np.array(self._pressure(4), dtype=np.uint8)
+
+    def read_pressure_little(self) -> np.ndarray:
+        """Read little finger pressure data"""
+        return np.array(self._pressure(5), dtype=np.uint8)
+
+    # --------------------------------------------------
+    # Version info interfaces
+    # --------------------------------------------------
+    
+    def read_versions(self) -> Dict[str, int]:
+        """Read version information (input registers 148–155)"""
+        result = self._read_input_registers(148, 8)
+        if not result:
+            return {}
+        
+        return {
+            "hand_freedom": result[0],
+            "hand_version": result[1],
+            "hand_number": result[2],
+            "hand_direction": result[3],
+            "software_version_major": result[4],
+            "software_version_minor": result[5] if len(result) > 5 else 0,
+            "software_version_revision": result[6] if len(result) > 6 else 0,
+            "hardware_version": result[7] if len(result) > 7 else 0
+        }
+
+    # --------------------------------------------------
+    # Write interfaces
+    # --------------------------------------------------
+    
+    def write_angles(self, vals: List[int]):
+        """Set 6 joint angles (holding registers 0–5)"""
+        vals = [int(x) for x in vals]
+        if not self.is_valid_6xuint8(vals):
+            raise ValueError("Six integers in the range 0–255 are required")
+        self._write_registers(0, vals)
+
+    def write_torques(self, vals: List[int]):
+        """Set 6 joint torques (holding registers 6–11)"""
+        vals = [int(x) for x in vals]
+        if not self.is_valid_6xuint8(vals):
+            raise ValueError("Six integers in the range 0–255 are required")
+        self._write_registers(6, vals)
+
+    def write_speeds(self, vals: List[int]):
+        """Set 6 joint speeds (holding registers 12–17)"""
+        vals = [int(x) for x in vals]
+        if not self.is_valid_6xuint8(vals):
+            raise ValueError("Six integers in the range 0–255 are required")
+        self._write_registers(12, vals)
+
+    # --------------------------------------------------
+    # Context management
+    # --------------------------------------------------
+    
+    def close(self):
+        """Close connection"""
+        self.cli.close()
+    
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    # --------------------------------------------------
+    # Fixed API interface functions
+    # --------------------------------------------------
+    
+    def is_valid_6xuint8(self, lst) -> bool:
+        """Validate a list of six integers in the range 0–255"""
+        if len(lst) < 6:
+            lst = [lst[0]] * 6
+        lst = [int(x) for x in lst]
+        return (
+            isinstance(lst, list) and
+            len(lst) == 6 and
+            all(type(x) is int and 0 <= x <= 255 for x in lst)
+        )
+    
+    def set_joint_positions(self, joint_angles=[0] * 6):
+        """Set joint positions"""
+        if self.is_valid_6xuint8(joint_angles):
+            self.write_angles(joint_angles)
+        else:
+            raise ValueError("Invalid angle values")
+
+    def set_speed(self, speed=[200] * 6):
+        """Set speed"""
+        self.write_speeds(speed)
+    
+    def set_torque(self, torque=[200] * 6):
+        """Set torque"""
+        self.write_torques(torque)
+
+    def set_current(self, current=[200] * 6):
+        """Set current (not supported on L6)"""
+        print("Setting current is not supported on L6", flush=True)
+
+    def get_version(self) -> list:
+        """Get version info"""
+        versions = self.read_versions()
+        return [
+            versions.get("hand_freedom", 0),
+            versions.get("hand_version", 0),
+            versions.get("hand_number", 0),
+            versions.get("hand_direction", 0),
+            versions.get("software_version_major", 0),
+            versions.get("hardware_version", 0)
+        ]
+
+    def get_current(self):
+        """Get current (not supported on L6)"""
+        print("Getting current is not supported on L6", flush=True)
+        return []
+
+    def get_state(self) -> list:
+        """Get joint state"""
+        return self.read_angles()
+    
+    def get_state_for_pub(self) -> list:
+        return self.get_state()
+
+    def get_current_status(self) -> list:
+        return self.get_state()
+    
+    def get_speed(self) -> list:
+        """Get current speeds"""
+        return self.read_speeds()
+    
+    def get_joint_speed(self) -> list:
+        return self.get_speed()
+    
+    def get_touch_type(self) -> int:
+        """Get tactile type (2 = matrix)"""
+        return 2
+    
+    def get_normal_force(self) -> list:
+        """Get tactile data: point-based"""
+        return [-1] * 5
+    
+    def get_tangential_force(self) -> list:
+        """Get tactile data: point-based"""
+        return [-1] * 5
+    
+    def get_approach_inc(self) -> list:
+        """Get tactile data: point-based"""
+        return [-1] * 5
+    
+    def get_touch(self) -> list:
+        return [-1] * 5
+
+    def get_thumb_matrix_touch(self):
+        return self._pressure(finger=1)
+
+    def get_index_matrix_touch(self):
+        return self._pressure(finger=2)
+
+    def get_middle_matrix_touch(self):
+        return self._pressure(finger=3)
+
+    def get_ring_matrix_touch(self):
+        return self._pressure(finger=4)
+
+    def get_little_matrix_touch(self):
+        return self._pressure(finger=5)
+        
+    def get_matrix_touch(self) -> list:
+        """Get tactile data: matrix"""
+        return [self._pressure(finger=1), self._pressure(finger=2), self._pressure(finger=3), self._pressure(finger=4), self._pressure(finger=5)]
+    
+    def get_matrix_touch_v2(self) -> list:
+        """Get tactile data: matrix"""
+        return self.get_matrix_touch()
+    
+    def get_torque(self) -> list:
+        """Get current torques"""
+        return self.read_torques()
+    
+    def get_temperature(self) -> list:
+        """Get current motor temperatures"""
+        return self.read_temperatures()
+    
+    def get_fault(self) -> list:
+        """Get current motor fault codes"""
+        return self.read_error_codes()
+
+    # --------------------------------------------------
+    # Convenience methods
+    # --------------------------------------------------
+    
+    def relax(self):
+        """Extend all fingers"""
+        self.set_joint_positions([255] * 6)
+    
+    def fist(self):
+        """Make a fist with all fingers"""
+        self.set_joint_positions([0] * 6)
+    
+    def dump_status(self):
+        """Print status information"""
+        print("=" * 50)
+        print("L6 robotic hand status information")
+        print("=" * 50)
+        
+        try:
+            # Joint state
+            angles = self.read_angles()
+            torques = self.read_torques()
+            speeds = self.read_speeds()
+            temps = self.read_temperatures()
+            errors = self.read_error_codes()
+            
+            print("Joint state:")
+            for i, name in enumerate(self.JOINT_NAMES):
+                print(f"  {name:15s}: angle={angles[i]:3d}, torque={torques[i]:3d}, "
+                      f"speed={speeds[i]:3d}, temp={temps[i]:2d}°C, error={errors[i]:2d}")
+            
+            # Version info
+            versions = self.read_versions()
+            print("\nVersion info:")
+            for key, value in versions.items():
+                print(f"  {key:20s}: {value}")
+            
+            # Pressure sensor test
+            print("\nPressure sensor test:")
+            thumb_pressure = self.read_pressure_thumb()
+            print(f"Thumb pressure data length: {len(thumb_pressure)}")
+            
+        except Exception as e:
+            print(f"Error while reading status: {e}")
+        
+        print("=" * 50)
+
+
+# ------------------- Demo program -------------------
+if __name__ == "__main__":
+    # Example usage
+    try:
+        with RealHandL6RS485(hand_id=0x27, modbus_port="/dev/ttyUSB0", baudrate=115200) as hand:
+            # Print status information
+            hand.dump_status()
+            
+            # Test basic control
+            print("\nTesting control...")
+            print("Extending fingers...")
+            hand.relax()
+            time.sleep(2)
+            
+            print("Making a fist...")
+            hand.fist()
+            time.sleep(2)
+            
+            print("Extending again...")
+            hand.relax()
+            
+            # Test pressure sensors
+            print("\nTesting pressure sensors...")
+            thumb_matrix = hand.get_thumb_matrix_touch()
+            print(f"Thumb pressure data: {len(thumb_matrix)} points")
+            
+            # Get pressure data for all fingers
+            all_matrices = hand.get_matrix_touch()
+            for i, name in enumerate(hand.FINGER_NAMES):
+                matrix = all_matrices[i]
+                print(f"{name} finger pressure data length: {len(matrix)}")
+            
+    except Exception as e:
+        print(f"Error: {e}")
