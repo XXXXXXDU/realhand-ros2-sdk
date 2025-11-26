@@ -29,7 +29,7 @@ The RealHand ROS2 SDK currently supports Ubuntu 22.04, ROS Humble, and Python 3.
 &ensp;&ensp; __Before use, modify the [setting.yaml](https://github.com/XXXXXXDU/realhand-ros2-sdk/blob/main/real_hand_ros2_sdk/real_hand_ros2_sdk/RealHand/config/setting.yaml) configuration file according to your needs.__  
 - Modify the password in `setting.yaml`. The default password is `"12345678"`, which corresponds to the Ubuntu system password for automatically enabling the CAN port in the SDK.  
 
-&ensp;&ensp; __Before use, configure the [real_hand.launch.py](https://github.com/XXXXXXDU/realhand-ros2-sdk/blob/main/real_hand_ros2_sdk/launch/realhand_hand.launch.py) file according to the actual dexterous hand parameters.__  
+&ensp;&ensp; __Before use, configure the [real_hand.launch.py](https://github.com/XXXXXXDU/realhand-ros2-sdk/blob/main/real_hand_ros2_sdk/launch/real_hand.launch.py) file according to the actual dexterous hand parameters.__  
 
 - **Launch the SDK**  
   Connect the RealHand dexterous hand's USB-to-CAN device to the Ubuntu machine (supported models: L7, L10, L20, L21, L25).  
@@ -48,7 +48,7 @@ The RealHand ROS2 SDK currently supports Ubuntu 22.04, ROS Humble, and Python 3.
 
 ## Usage for WIN + ROS2  
 
-&ensp;&ensp; __Before use, configure the [real_hand.launch.py](https://github.com/XXXXXXDU/realhand-ros2-sdk/blob/main/real_hand_ros2_sdk/launch/realhand_hand.launch.py) file according to the actual dexterous hand parameters.__  
+&ensp;&ensp; __Before use, configure the [real_hand.launch.py](https://github.com/XXXXXXDU/realhand-ros2-sdk/blob/main/real_hand_ros2_sdk/launch/real_hand.launch.py) file according to the actual dexterous hand parameters.__  
 
 - **Launch the SDK**  
   Connect the RealHand dexterous hand's USB-to-CAN device to the Windows machine (supported models: L7, L10, L20, L21, L25).  
@@ -100,7 +100,7 @@ $ ros2 topic echo /cb_left_hand_control_cmd
 
 - > ### release_2.1.7  
  - 1. Fixed known issues.  
- - 2. Moved [Mujoco and PyBullet simulation](https://github.com/XXXXXXDU/real_hand_sim) to a separate repository to reduce SDK size.  
+ - 2. Moved Mujoco and PyBullet simulation to a separate repository to reduce SDK size.  
 
 - > ### release_2.1.6  
   - 1. Added support for dual CAN control of two dexterous hands.  
@@ -121,10 +121,10 @@ $ ros2 topic echo /cb_left_hand_control_cmd
 
 ## [Examples](examples/)  
 
-&ensp;&ensp; __Before use, modify the [setting.yaml](https://github.com/XXXXXXDU/realhand-ros2-sdk/blob/main/realhand-ros2-sdk/realhand-ros2-sdk/RealHand/config/setting.yaml) configuration file according to your needs.__  
+&ensp;&ensp; __Before use, modify the [setting.yaml](https://github.com/XXXXXXDU/realhand-ros2-sdk/blob/main/real_hand_ros2_sdk/real_hand_ros2_sdk/RealHand/config/setting.yaml) configuration file according to your needs.__  
 
 ## General  
-- [gui_control (Graphical Interface Control)](图形界面控制)  
+- [gui_control (Graphical Interface Control)](https://github.com/XXXXXXDU/realhand-ros2-sdk/tree/main/gui_control)  
 The graphical interface allows controlling individual joints of RealHand dexterous hands (L10, L20) via sliders. It also supports saving the current joint states by recording slider values and replaying actions using functional buttons.  
 
 To control the RealHand dexterous hand via `gui_control`:  
@@ -158,6 +158,3 @@ $ ros2 launch gui_control gui_control.launch.py
 
 ## Topic Documentation  
 [real Hand Topic Document](doc/Topic-Reference.md)  
-
-## Mujoco and PyBullet Simulation  
- - [Mujoco and PyBullet Repository](https://github.com/XXXXXXDU/real_hand_sim)

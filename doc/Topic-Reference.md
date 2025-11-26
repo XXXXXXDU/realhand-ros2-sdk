@@ -1,12 +1,12 @@
-# Linker Hand ROS SDK Topic Documentation
+# Real Hand ROS SDK Topic Documentation
 
 ## Topic Overview
 
-This document provides a detailed overview of the ROS Topic for the Linker Hand, including functions for controlling the hand's movements, retrieving sensor data, and setting operational parameters.
+This document provides a detailed overview of the ROS Topic for the Real Hand, including functions for controlling the hand's movements, retrieving sensor data, and setting operational parameters.
 
 ## Topic List
 ```bash
-/cb_hand_setting_cmd # LinkerHand command topic
+/cb_hand_setting_cmd # RealHand command topic
 /cb_left_hand_control_cmd # Control left-hand motion by range 0~255 (range)
 /cb_left_hand_control_cmd_arc # Control left-hand motion by arc -3.14~3.14 (radians) 
 /cb_left_hand_force # Left-hand pressure (force) data topic
@@ -122,7 +122,7 @@ little_matrix：Little finger matrix pressure values 0~255
 
 ```
 ---
-### Retrieve LinkerHand configuration information Topic /cb_left_hand_info or /cb_right_hand_info
+### Retrieve RealHand configuration information Topic /cb_left_hand_info or /cb_right_hand_info
 ```bash
 ros2 topic echo /cb_right_hand_info
 data: "{\"version\": [7, 0, 0, 0], \"hand_joint\": \"L21\", \"speed\": [1, 0, 0, 0, 0, 0,\
@@ -141,7 +141,7 @@ data: "{\"version\": [7, 0, 0, 0], \"hand_joint\": \"L21\", \"speed\": [1, 0, 0,
   , \"middle_finger_tip\", \"ring_finger_tip\", \"little_finger_tip\"]}"
 ```
 **Description**: 
-Get LinkerHand configuration info Data format std_msgs/String for Json
+Get RealHand configuration info Data format std_msgs/String for Json
 **Parameters**:
 - `version`: hand version number version[0]: indicates L10 version[1]: indicates version version[2]: indicates batch number version[3]: 76 for left hand 82 for right hand others are internal codes
 - `hand_joint`: L10 or L20 or L25 etc.
@@ -161,30 +161,30 @@ Get LinkerHand configuration info Data format std_msgs/String for Json
 
 
 
-## range_to_arc 弧度角度对照表
+## range_to_arc RadianAngleReferenceTable
 
-获取和发送L10、L20的弧度值
+GetAndSendL10、L20RadianValues
 
-topic:/cb_left_hand_state_arc and /cb_right_hand_state_arc 获取LinkerHand状态position为弧度值
+topic:/cb_left_hand_state_arc and /cb_right_hand_state_arc GetRealHandStatepositionAsRadianValues
 
-topic:/cb_left_hand_control_cmd_arc 和 /cb_right_hand_control_cmd_arc 发布position弧度值控制LinkerHand手指运动
+topic:/cb_left_hand_control_cmd_arc and /cb_right_hand_control_cmd_arc PublishpositionRadianValuesToControlRealHandFingerMotion
 
-## 弧度与范围对照表
+## RadianAndRangeReferenceTable
 
 #---------------------------------------------------------------------------------------------------
 
-L7灵巧手关节顺序 = ["大拇指弯曲", "大拇指横摆","食指弯曲", "中指弯曲", "无名指弯曲","小拇指弯曲","拇指旋转"]
+L7DexterousHandJointOrder = ["ThumbFlexion", "ThumbAbduction","IndexFlexion", "MiddleFlexion", "RingFlexion","LittleFlexion","ThumbRotation"]
 ### L7 L OK
 l7_l_min = [0, 0, 0, 0, 0, 0, -0.52]
 l7_l_max = [0.44, 1.43, 1.62, 1.62, 1.62, 1.62, 1.01]
 l7_l_derict = [-1, -1, -1, -1, -1, -1, -1]
-### L7 R OK (urdf后续会更改！！！)
+### L7 R OK (urdfWillBeModifiedLater！！！)
 l7_r_min = [0, -1.43, 0, 0, 0, 0, 0]
 l7_r_max = [0.75, 0, 1.62, 1.62, 1.62, 1.62, 1.54]
 l7_r_derict = [-1, 0, -1, -1, -1, -1, -1]
 #---------------------------------------------------------------------------------------------------
 
-L10灵巧手关节顺序 = ["拇指根部", "拇指侧摆","食指根部", "中指根部", "无名指根部","小指根部","食指侧摆","无名指侧摆","小指侧摆","拇指旋转"]
+L10DexterousHandJointOrder = ["ThumbBase", "ThumbSideSwing","IndexBase", "MiddleBase", "RingBase","LittleBase","IndexSideSwing","RingSideSwing","LittleSideSwing","ThumbRotation"]
 ### L10 L OK
 l10_l_min = [0, 0, 0, 0, 0, 0, 0, -0.26, -0.26, -0.52]
 l10_l_max = [1.45, 1.43, 1.62, 1.62, 1.62, 1.62, 0.26, 0, 0, 1.01]
@@ -195,7 +195,7 @@ l10_r_max = [0.75, 1.43, 1.62, 1.62, 1.62, 1.62, 0, 0.13, 0.26, 1.01]
 l10_r_derict = [-1, -1, -1, -1, -1, -1, -1, 0, 0, -1]
 #---------------------------------------------------------------------------------------------------
 
-L20灵巧手关节顺序 = ["拇指根部", "食指根部", "中指根部", "无名指根部","小指根部","拇指侧摆","食指侧摆","中指侧摆","无名指侧摆","小指侧摆","拇指横摆","预留","预留","预留","预留","拇指尖部","食指末端","中指末端","无名指末端","小指末端"]
+L20DexterousHandJointOrder = ["ThumbBase", "IndexBase", "MiddleBase", "RingBase","LittleBase","ThumbSideSwing","IndexSideSwing","MiddleSideSwing","RingSideSwing","LittleSideSwing","ThumbHorizontalSwing","Reserved","Reserved","Reserved","Reserved","ThumbTip","IndexDistal","MiddleDistal","RingDistal","LittleDistal"]
 ### L20 L OK
 l20_l_min = [0, 0, 0, 0, 0, -0.297, -0.26, -0.26, -0.26, -0.26, 0.122, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 l20_l_max = [0.87, 1.4, 1.4, 1.4, 1.4, 0.683, 0.26, 0.26, 0.26, 0.26, 1.78, 0, 0, 0, 0, 1.29, 1.08, 1.08, 1.08, 1.08]
@@ -206,7 +206,7 @@ l20_r_max = [0.87, 1.4, 1.4, 1.4, 1.4, 0.683, 0.26, 0.26, 0.26, 0.26, 1.78, 0, 0
 l20_r_derict = [-1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1]
 #---------------------------------------------------------------------------------------------------
 
-L21灵巧手关节顺序 = ["大拇指根部","食指根部","中指根部","无名指根部","小拇指根部","大拇指侧摆","食指侧摆","中指侧摆","无名指侧摆","小拇指侧摆","大拇指横滚","预留","预留","预留","预留","大拇指中部","预留","预留","预留","预留","大拇指指尖","食指指尖","中指指尖","无名指指尖","小拇指指尖"]
+L21DexterousHandJointOrder = ["ThumbBase","IndexBase","MiddleBase","RingBase","LittleBase","ThumbSideSwing","IndexSideSwing","MiddleSideSwing","RingSideSwing","LittleSideSwing","ThumbRoll","Reserved","Reserved","Reserved","Reserved","ThumbMiddle","Reserved","Reserved","Reserved","Reserved","ThumbFingertip","IndexFingertip","MiddleFingertip","RingFingertip","LittleFingertip"]
 ### L21 L OK
 l21_l_min = [0, 0, 0, 0, 0, 0, 0, -0.18, -0.18, 0, -0.6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 l21_l_max = [1, 1.57, 1.57, 1.57, 1.57, 1.6, 0.18, 0.18, 0.18, 0.18, 0.6, 0, 0, 0, 0, 1.57, 0, 0, 0, 0, 1.57, 1.57, 1.57, 1.57, 1.57]
@@ -219,9 +219,9 @@ l21_r_derict = [-1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1, 0, 0, 0,
 
 
 
-# Topic 示例
+# Topic Examples
 # L7
-- L7右手握拳
+- L7RightHandFist
 ```bash
 ros2 topic pub /cb_right_hand_control_cmd sensor_msgs/msg/JointState "
 header:
@@ -234,50 +234,3 @@ position: [75,115,0,0,0,0,42]
 velocity: [255,255,255,255,255,255,255]
 effort: []
 "
-```
-
-- L7右手张开
-```bash
-ros2 topic pub /cb_right_hand_control_cmd sensor_msgs/msg/JointState "
-header:
-  stamp:
-    sec: 0
-    nanosec: 0
-  frame_id: ''
-name: []
-position: [255,255,255,255,255,255,34]
-velocity: [255,255,255,255,255,255,255]
-effort: [0.0, 0.0]
-"
-```
-
-# L10
-- L10右手握拳
-```bash
-ros2 topic pub /cb_right_hand_control_cmd sensor_msgs/msg/JointState "
-header:
-  stamp:
-    sec: 0
-    nanosec: 0
-  frame_id: ''
-name: []
-position: [73,75,0,0,0,0,110,110,120,78]
-velocity: [255,255,255,255,255,255,255,255,255,255]
-effort: []
-"
-```
-
-- L10右手张开
-```bash
-ros2 topic pub /cb_right_hand_control_cmd sensor_msgs/msg/JointState "
-header:
-  stamp:
-    sec: 0
-    nanosec: 0
-  frame_id: ''
-name: []
-position: [255,210,255,255,255,255,110,110,120,33]
-velocity: [255,255,255,255,255,255,255,255,255,255]
-effort: [0.0, 0.0]
-"
-```
