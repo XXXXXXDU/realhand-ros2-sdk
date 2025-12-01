@@ -14,9 +14,9 @@ from std_msgs.msg import String, Header, Float32MultiArray
 from sensor_msgs.msg import JointState
 import time,threading, json
 from datetime import datetime
-from real_hand_ros2_sdk.RealHand.real_hand_api import RealHandApi
-from real_hand_ros2_sdk.RealHand.utils.color_msg import ColorMsg
-from real_hand_ros2_sdk.RealHand.utils.open_can import OpenCan
+from RealHand.real_hand_api import RealHandApi
+from RealHand.utils.color_msg import ColorMsg
+from RealHand.utils.open_can import OpenCan
 
 
 class RealHand(Node):

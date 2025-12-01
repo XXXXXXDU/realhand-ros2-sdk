@@ -17,3 +17,5 @@ pyqtgraph
 dm_control
 uvicorn
 matplotlib
+jinja2
+typeguard
