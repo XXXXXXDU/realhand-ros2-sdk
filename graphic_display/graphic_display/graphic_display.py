@@ -11,7 +11,7 @@ import json
 import sys
 from typing import Dict, List
 
-from real_hand_ros2_sdk.RealHand.utils.init_real_hand import InitRealHand
+from RealHand.utils.init_real_hand import InitRealHand
 
 class ForceGroupWindow(QtWidgets.QMainWindow):
     """Visualization window for dedicated force sensor group"""
