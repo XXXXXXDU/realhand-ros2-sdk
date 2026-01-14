@@ -26,7 +26,7 @@ The RealHand ROS2 SDK currently supports Ubuntu 22.04, ROS Humble, and Python 3.
 ```  
 
 ## Usage for Ubuntu  
-&ensp;&ensp; __Before use, modify the [setting.yaml](https://github.com/XXXXXXDU/realhand-ros2-sdk/blob/main/real_hand_ros2_sdk/real_hand_ros2_sdk/RealHand/config/setting.yaml) configuration file according to your needs.__  
+&ensp;&ensp; __Before use, modify the [setting.yaml](https://github.com/XXXXXXDU/realhand-python-sdk/blob/main/RealHand/config/setting.yaml) configuration file according to your needs.__  
 - Modify the password in `setting.yaml`. The default password is `"12345678"`, which corresponds to the Ubuntu system password for automatically enabling the CAN port in the SDK.  
 
 &ensp;&ensp; __Before use, configure the [real_hand.launch.py](https://github.com/XXXXXXDU/realhand-ros2-sdk/blob/main/real_hand_ros2_sdk/launch/real_hand.launch.py) file according to the actual dexterous hand parameters.__  
@@ -121,7 +121,7 @@ $ ros2 topic echo /cb_left_hand_control_cmd
 
 ## [Examples](examples/)  
 
-&ensp;&ensp; __Before use, modify the [setting.yaml](https://github.com/XXXXXXDU/realhand-ros2-sdk/blob/main/real_hand_ros2_sdk/real_hand_ros2_sdk/RealHand/config/setting.yaml) configuration file according to your needs.__  
+&ensp;&ensp; __Before use, modify the [setting.yaml](https://github.com/XXXXXXDU/realhand-python-sdk/blob/main/RealHand/config/setting.yaml) configuration file according to your needs.__  
 
 ## General  
 - [gui_control (Graphical Interface Control)](https://github.com/XXXXXXDU/realhand-ros2-sdk/tree/main/gui_control)  
